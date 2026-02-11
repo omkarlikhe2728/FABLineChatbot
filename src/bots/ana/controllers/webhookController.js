@@ -108,7 +108,23 @@ class WebhookController {
    * Handle message event (text or other message types)
    */
   async _handleMessageEvent(event, userId) {
-    // Only handle text messages
+    const session = sessionService.getSession(userId);
+    const currentState = session ? session.dialogState : 'MAIN_MENU';
+
+    // In live chat mode - forward ALL message types as-is
+    if (currentState === 'LIVE_CHAT_ACTIVE') {
+      logger.info(`Live chat ${event.message.type} message from ${userId}`);
+
+      // Pass entire message object to dialogManager
+      const messages = await dialogManager.processMessage(userId, 'livechat_message', event.message);
+
+      if (messages) {
+        return this._replyMessages(event.replyToken, messages);
+      }
+      return null;
+    }
+
+    // Outside live chat, only handle text messages
     if (event.message.type !== 'text') {
       logger.info(`Skipping non-text message type: ${event.message.type}`);
       return null;
@@ -116,9 +132,6 @@ class WebhookController {
 
     const messageText = event.message.text;
     logger.info(`Text message from ${userId}: "${messageText}"`);
-
-    const session = sessionService.getSession(userId);
-    const currentState = session ? session.dialogState : 'MAIN_MENU';
 
     const messages = await dialogManager.processMessage(userId, 'text', messageText);
 

@@ -9,40 +9,52 @@ class DialogManager {
     try {
       switch (dialogState) {
         case 'CHECK_BALANCE':
-          return await this.handleCheckBalanceInput(input, attributes);
+          // For live chat, input is a message object; extract text for text dialogs
+          const checkBalanceInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return await this.handleCheckBalanceInput(checkBalanceInput, attributes);
 
         case 'VERIFY_OTP':
-          return await this.handleVerifyOTP(input, attributes);
+          const verifyInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return await this.handleVerifyOTP(verifyInput, attributes);
 
         case 'GET_PHONE_FOR_CARDS':
-          return await this.handleGetPhoneForCards(input, attributes);
+          const phoneInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return await this.handleGetPhoneForCards(phoneInput, attributes);
 
         case 'CARD_ACTIONS_MENU':
           return { messages: [] };
 
         case 'BLOCK_CARD':
-          return await this.handleBlockCardInput(input, attributes);
+          const blockInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return await this.handleBlockCardInput(blockInput, attributes);
 
         case 'CONFIRM_BLOCK_CARD':
-          return await this.handleConfirmBlockCard(input, attributes);
+          const confirmBlockInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return await this.handleConfirmBlockCard(confirmBlockInput, attributes);
 
         case 'UNBLOCK_CARD':
-          return await this.handleUnblockCardInput(input, attributes);
+          const unblockInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return await this.handleUnblockCardInput(unblockInput, attributes);
 
         case 'CONFIRM_UNBLOCK_CARD':
-          return await this.handleConfirmUnblockCard(input, attributes);
+          const confirmUnblockInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return await this.handleConfirmUnblockCard(confirmUnblockInput, attributes);
 
         case 'REPORT_LOST_CARD':
-          return await this.handleReportLostCardInput(input, attributes);
+          const reportInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return await this.handleReportLostCardInput(reportInput, attributes);
 
         case 'CONFIRM_REPORT_LOST':
-          return await this.handleConfirmReportLost(input, attributes);
+          const confirmReportInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return await this.handleConfirmReportLost(confirmReportInput, attributes);
 
         case 'VIEW_CARD_LIMITS':
-          return await this.handleViewCardLimitsInput(input, attributes);
+          const limitsInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return await this.handleViewCardLimitsInput(limitsInput, attributes);
 
         case 'MAIN_MENU':
-          return this.handleMainMenuInput(input);
+          const menuInput = typeof input === 'string' ? input : (input.type === 'text' ? input.text : '');
+          return this.handleMainMenuInput(menuInput);
 
         case 'LIVE_CHAT_ACTIVE':
           return await this._handleLiveChatMessage(userId, input);
@@ -823,48 +835,59 @@ class DialogManager {
   }
 
   /**
-   * Handle messages during live chat
+   * Handle all message types during live chat
+   * @param {string} userId - LINE user ID
+   * @param {Object|string} message - Complete LINE message object or text string
    */
-  async _handleLiveChatMessage(userId, text) {
-    // Check for exit keywords
-    const exitKeywords = /\b(exit|quit|end chat|exit chat|close chat|back to bot|end live chat|end session|close session|menu|main menu|disconnect)\b/i;
+  async _handleLiveChatMessage(userId, message) {
+    // Handle backward compatibility - if string passed, wrap it
+    if (typeof message === 'string') {
+      message = { type: 'text', text: message };
+    }
 
-    if (exitKeywords.test(text)) {
-      await liveChatService.endLiveChat(userId);
+    // Check for exit keywords (text messages only)
+    if (message.type === 'text') {
+      const lowerText = message.text.toLowerCase().trim();
+      const exitKeywords = /\b(exit|quit|end chat|exit chat|close chat|back to bot|end live chat|end session|close session|menu|main menu|disconnect)\b/i;
 
-      // Check if user specifically asked to end session
-      if (/\b(end session|close session)\b/i.test(text)) {
+      if (exitKeywords.test(lowerText)) {
+        await liveChatService.endLiveChat(userId);
+
+        // Check if user specifically asked to end session
+        if (/\b(end session|close session)\b/i.test(lowerText)) {
+          return {
+            messages: [
+              {
+                type: 'text',
+                text: 'Thank you for using FAB Bank. Your session has ended. Please follow the bot again to start a new conversation.',
+              },
+            ],
+            newDialogState: 'SESSION_CLOSED',
+          };
+        }
+
+        // Otherwise return to main menu
         return {
           messages: [
             {
               type: 'text',
-              text: 'Thank you for using FAB Bank. Your session has ended. Please follow the bot again to start a new conversation.',
+              text: 'Your live chat session has ended. Thank you for connecting with us! 👋',
+            },
+            {
+              type: 'text',
+              text: 'Choose an option:\n\n1️⃣ Check Balance\n2️⃣ Card Services\n3️⃣ Mini Statement\n4️⃣ Live Chat\n5️⃣ End Session',
             },
           ],
-          newDialogState: 'SESSION_CLOSED',
+          newDialogState: 'MAIN_MENU',
         };
       }
-
-      // Otherwise return to main menu
-      return {
-        messages: [
-          {
-            type: 'text',
-            text: 'Your live chat session has ended. Thank you for connecting with us! 👋',
-          },
-          {
-            type: 'text',
-            text: 'Choose an option:\n\n1️⃣ Check Balance\n2️⃣ Card Services\n3️⃣ Mini Statement\n4️⃣ Live Chat\n5️⃣ End Session',
-          },
-        ],
-        newDialogState: 'MAIN_MENU',
-      };
     }
 
-    // Forward message to agent
+    // Forward entire message object to agent (all types: text, image, video, audio, file, location, sticker)
     try {
-      await liveChatService.sendMessage(userId, text);
-      logger.info(`Message forwarded to agent for user ${userId}`);
+      logger.info(`Forwarding ${message.type} message to agent for user ${userId}`);
+      await liveChatService.sendMessage(userId, message);
+      logger.info(`${message.type} message forwarded to agent for user ${userId}`);
     } catch (error) {
       logger.error(`Failed to send message to agent: ${error.message}`);
     }

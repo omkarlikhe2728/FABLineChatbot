@@ -58,6 +58,9 @@ class LiveChatService {
 
   /**
    * Send message to live chat agent
+   * @param {string} userId - LINE user ID
+   * @param {Object|string} message - Complete LINE message object or text string
+   * @returns {Promise<Object>} - API response
    */
   async sendMessage(userId, message) {
     try {
@@ -69,21 +72,31 @@ class LiveChatService {
         };
       }
 
-      logger.info(`Sending live chat message for user ${userId}`);
+      // Handle backward compatibility - if string passed, wrap it
+      if (typeof message === 'string') {
+        message = { type: 'text', text: message };
+      }
+
+      const messageType = message.type || 'text';
+      logger.info(`Sending ${messageType} live chat message for user ${userId}`);
+
+      // Send entire LINE message object to middleware
+      const payload = {
+        userId,
+        channel: 'line',
+        message: message,  // Complete LINE message object (type, id, text, contentProvider, etc.)
+      };
 
       const response = await axios.post(
         `${this.baseUrl}/api/line-direct/live-chat/message/ana`,
-        {
-          userId,
-          message,
-          channel: 'line',
-        },
+        payload,
         {
           timeout: this.timeout,
+          headers: { 'Content-Type': 'application/json' },
         }
       );
 
-      logger.info(`Live chat message sent successfully for user ${userId}`);
+      logger.info(`Live chat ${messageType} sent successfully for user ${userId}`);
       return {
         success: true,
         data: response.data,

@@ -59,7 +59,16 @@ class WebhookController {
         break;
 
       case 'message':
-        if (event.message.type === 'text') {
+        // Check if in live chat mode to allow all message types
+        const session = await sessionService.getSession(userId);
+        const currentState = session ? session.dialogState : 'MAIN_MENU';
+
+        if (currentState === 'LIVE_CHAT_ACTIVE') {
+          // In live chat - forward ALL message types
+          const messageHandler = require('../handlers/messageHandler');
+          await messageHandler.handleLiveChatMessage(replyToken, userId, event.message);
+        } else if (event.message.type === 'text') {
+          // Outside live chat - only handle text messages
           const messageHandler = require('../handlers/messageHandler');
           await messageHandler.handleTextMessage(replyToken, userId, event.message);
         }

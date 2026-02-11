@@ -27,6 +27,8 @@ class DialogManager {
         return await this._handleTextMessage(userId, currentState, messageData);
       } else if (messageType === 'follow') {
         return await this._handleFollowEvent(userId);
+      } else if (messageType === 'livechat_message') {
+        return await this._handleLiveChatMessage(userId, messageData);
       }
 
       return null;
@@ -403,32 +405,40 @@ class DialogManager {
   }
 
   /**
-   * Handle messages during live chat
+   * Handle all message types during live chat
+   * @param {string} userId - LINE user ID
+   * @param {Object} message - Complete LINE message object from event.message
    */
-  async _handleLiveChatMessage(userId, text) {
-    // Check for exit keywords
-    const exitKeywords = /\b(exit|quit|end chat|exit chat|close chat|back to bot|end live chat|end session|close session|menu|main menu|disconnect)\b/i;
-    if (exitKeywords.test(text)) {
-      await this.liveChatService.endLiveChat(userId);
+  async _handleLiveChatMessage(userId, message) {
+    // Check for exit keywords (text messages only)
+    if (message.type === 'text') {
+      const lowerText = message.text.toLowerCase().trim();
+      const exitKeywords = /\b(exit|quit|end chat|exit chat|close chat|back to bot|end live chat|end session|close session|menu|main menu|disconnect)\b/i;
 
-      // Check if user specifically asked to end session (CSAT)
-      if (/\b(end session|close session|disconnect)\b/i.test(text)) {
-        return await this._startCSAT(userId);
+      if (exitKeywords.test(lowerText)) {
+        await this.liveChatService.endLiveChat(userId);
+
+        // Check if user specifically asked to end session (CSAT)
+        if (/\b(end session|close session|disconnect)\b/i.test(lowerText)) {
+          return await this._startCSAT(userId);
+        }
+
+        this.sessionService.clearSession(userId);
+        return [this.templateService.liveChatEndedMessage(), this.templateService.mainMenuButtons()];
       }
-
-      this.sessionService.clearSession(userId);
-      return [this.templateService.liveChatEndedMessage(), this.templateService.mainMenuButtons()];
     }
 
-    // Forward message to agent
-    const result = await this.liveChatService.sendMessage(userId, text);
+    // Forward entire message object to agent (all types: text, image, video, audio, file, location, sticker)
+    logger.info(`Forwarding ${message.type} message to agent for user ${userId}`);
+    const result = await this.liveChatService.sendMessage(userId, message);
+
     if (!result.success) {
       return [
-        { type: 'text', text: 'Sorry, unable to reach the agent. Type "menu" to return to main menu.' },
+        { type: 'text', text: `Sorry, unable to send ${message.type}. Type "menu" to return to main menu.` },
       ];
     }
 
-    // Don't reply — agent will reply via middleware
+    // No reply - agent will handle
     return null;
   }
 
