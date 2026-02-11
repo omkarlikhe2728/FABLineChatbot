@@ -1,0 +1,38 @@
+{
+  "name": "fab-line-banking-bot",
+  "version": "1.0.0",
+  "description": "FAB Bank LINE Banking Chatbot",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --detectOpenHandles",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [
+    "line",
+    "banking",
+    "chatbot",
+    "otp",
+    "fab"
+  ],
+  "author": "FAB Bank",
+  "license": "MIT",
+  "dependencies": {
+    "@line/bot-sdk": "^10.6.0",
+    "axios": "^1.4.0",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "nodemon": "^2.0.20",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  }
+}
