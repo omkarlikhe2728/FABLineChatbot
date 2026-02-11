@@ -5,6 +5,7 @@ class LiveChatService {
   constructor(config = {}) {
     this.baseUrl = config.baseUrl || process.env.FABBANK_LIVE_CHAT_API_URL;
     this.timeout = config.timeout || 5000;
+    this.botId = config.botId || 'fabbank';
 
     if (!this.baseUrl) {
       logger.warn(
@@ -12,7 +13,7 @@ class LiveChatService {
           'Live chat feature will not be available. Check .env.fabbank configuration.'
       );
     } else {
-      logger.info(`✅ FAB Bank LiveChatService initialized with baseUrl: ${this.baseUrl}`);
+      logger.info(`✅ FAB Bank LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}`);
     }
   }
 
@@ -91,7 +92,7 @@ class LiveChatService {
       };
 
       const response = await axios.post(
-        `${this.baseUrl}/api/line-direct/live-chat/message/ana`,
+        `${this.baseUrl}/api/line-direct/live-chat/message/${this.botId}`,
         payload,
         {
           timeout: this.timeout,
@@ -163,6 +164,7 @@ class LiveChatService {
 // Create singleton instance
 const defaultConfig = {
   baseUrl: process.env.FABBANK_LIVE_CHAT_API_URL,
+  botId: 'fabbank',
 };
 const defaultInstance = new LiveChatService(defaultConfig);
 
