@@ -1,6 +1,6 @@
 const lineService = require('../services/lineService');
 const sessionService = require('../services/sessionService');
-const logger = require('../utils/logger');
+const logger = require('../../../common/utils/logger');
 
 class WebhookController {
   async handleWebhook(req, res) {

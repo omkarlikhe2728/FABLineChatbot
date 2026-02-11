@@ -1,10 +1,11 @@
 const axios = require('axios');
-const logger = require('../utils/logger');
+const logger = require('../../../common/utils/logger');
 
 class BankingService {
-  constructor() {
-    this.baseURL = process.env.BANKING_API_BASE_URL;
-    this.timeout = parseInt(process.env.BANKING_API_TIMEOUT || '5000');
+  constructor(config) {
+    this.config = config;
+    this.baseURL = config.apiUrl;
+    this.timeout = config.apiTimeout || 5000;
 
     this.client = axios.create({
       baseURL: this.baseURL,
@@ -208,4 +209,12 @@ class BankingService {
   }
 }
 
-module.exports = new BankingService();
+// Create default instance for backward compatibility
+const defaultConfig = {
+  apiUrl: process.env.FABBANK_BANKING_API_URL,
+  apiTimeout: parseInt(process.env.FABBANK_BANKING_API_TIMEOUT || '5000'),
+};
+
+const defaultInstance = new BankingService(defaultConfig);
+
+module.exports = defaultInstance;

@@ -1,10 +1,11 @@
 const line = require('@line/bot-sdk');
-const logger = require('../utils/logger');
+const logger = require('../../../common/utils/logger');
 
 class LineService {
-  constructor() {
+  constructor(config) {
+    this.config = config;
     this.client = new line.Client({
-      channelAccessToken: process.env.LINE_ACCESS_TOKEN,
+      channelAccessToken: config.accessToken,
     });
   }
 
@@ -48,4 +49,12 @@ class LineService {
   }
 }
 
-module.exports = new LineService();
+// Create default instance for backward compatibility
+// Config will be initialized from environment variables
+const defaultConfig = {
+  accessToken: process.env.FABBANK_LINE_ACCESS_TOKEN,
+};
+
+const defaultInstance = new LineService(defaultConfig);
+
+module.exports = defaultInstance;

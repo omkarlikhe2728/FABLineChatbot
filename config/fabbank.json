@@ -1,0 +1,32 @@
+{
+  "botName": "FAB Bank Bot",
+  "welcomeImage": "https://www.bankfab.com/-/media/fab-uds/personal/promotions/2025/mclaren-f1-cards-offer/mclaren-homepage-banner-en.jpg?h=670&iar=0&w=1440&hash=AACC95307F56FA4DD937F75AF531DA93",
+  "features": {
+    "checkBalance": true,
+    "cardServices": true,
+    "liveChat": true,
+    "miniStatement": true
+  },
+  "menu": {
+    "buttons": [
+      {
+        "label": "Check Balance",
+        "action": "check_balance"
+      },
+      {
+        "label": "Card Services",
+        "action": "card_services"
+      },
+      {
+        "label": "Live Chat",
+        "action": "live_chat"
+      },
+      {
+        "label": "End Session",
+        "action": "end_session"
+      }
+    ]
+  },
+  "sessionTimeout": 300000,
+  "otpExpiry": 300
+}

@@ -280,6 +280,45 @@ class TemplateService {
       text: `❌ ${title}\n\n${message}`,
     };
   }
+
+  getAgentConnectingMessage() {
+    return {
+      type: 'text',
+      text: '💬 Please wait while we connect you with an agent.\n\nA FAB Bank team member will assist you shortly. You can also reach us at:\n📞 +1 800 123 4567\n📧 support@fabbank.com\n\n⏰ Chat available 24/7',
+    };
+  }
+
+  getLiveChatEndedMessage() {
+    return {
+      type: 'text',
+      text: '👋 Your live chat session has ended. Thank you for connecting with us!\n\nWe look forward to serving you again.',
+    };
+  }
+
+  getEndLiveChatButtonTemplate() {
+    return {
+      type: 'template',
+      altText: 'End Live Chat',
+      template: {
+        type: 'buttons',
+        text: '💬 You are currently chatting with a FAB Bank agent.\n\nWould you like to end the chat?',
+        actions: [
+          {
+            type: 'postback',
+            label: '🚪 End Chat',
+            data: 'action=end_live_chat',
+            displayText: '🚪 End Chat',
+          },
+          {
+            type: 'postback',
+            label: '💬 Continue',
+            data: 'action=main_menu',
+            displayText: '💬 Continue Chatting',
+          },
+        ],
+      },
+    };
+  }
 }
 
 module.exports = new TemplateService();

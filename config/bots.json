@@ -1,0 +1,18 @@
+{
+  "bots": [
+    {
+      "id": "fabbank",
+      "enabled": true,
+      "envFile": ".env.fabbank",
+      "configFile": "config/fabbank.json",
+      "modulePath": "./bots/fabbank"
+    },
+    {
+      "id": "sands",
+      "enabled": true,
+      "envFile": ".env.sands",
+      "configFile": "config/sands.json",
+      "modulePath": "./bots/sands"
+    }
+  ]
+}

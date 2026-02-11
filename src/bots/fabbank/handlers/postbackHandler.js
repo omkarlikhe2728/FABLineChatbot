@@ -1,7 +1,8 @@
 const lineService = require('../services/lineService');
 const sessionService = require('../services/sessionService');
 const bankingService = require('../services/bankingService');
-const logger = require('../utils/logger');
+const dialogManager = require('../services/dialogManager');
+const logger = require('../../../common/utils/logger');
 
 class PostbackHandler {
   async handlePostback(replyToken, userId, postback) {
@@ -34,6 +35,10 @@ class PostbackHandler {
 
         case 'live_chat':
           await this.startLiveChat(replyToken, userId);
+          break;
+
+        case 'end_live_chat':
+          await this.endLiveChat(replyToken, userId);
           break;
 
         case 'view_mini_statement':
@@ -193,12 +198,32 @@ class PostbackHandler {
   }
 
   async startLiveChat(replyToken, userId) {
-    await sessionService.updateDialogState(userId, 'LIVE_CHAT');
+    // Start live chat via dialogManager
+    const result = await dialogManager._startLiveChat(userId);
+
+    // Update session state
+    if (result.newDialogState) {
+      await sessionService.updateDialogState(userId, result.newDialogState);
+    }
+
+    // Send response to user
+    if (result.messages && result.messages.length > 0) {
+      await lineService.replyMessage(replyToken, result.messages);
+    }
+  }
+
+  async endLiveChat(replyToken, userId) {
+    // Clear session and return to main menu
+    await sessionService.updateDialogState(userId, 'MAIN_MENU');
 
     await lineService.replyMessage(replyToken, [
       {
         type: 'text',
-        text: '✅ You selected: Live Chat\n\nPlease wait while we connect you with an agent.\n\nA FAB Bank team member will assist you shortly. You can also reach us at:\n📞 +1 800 123 4567\n📧 support@fabbank.com\n💬 Chat available 24/7',
+        text: 'Your live chat session has ended. Thank you for connecting with us! 👋',
+      },
+      {
+        type: 'text',
+        text: 'Choose an option:\n\n1️⃣ Check Balance\n2️⃣ Card Services\n3️⃣ Mini Statement\n4️⃣ Live Chat\n5️⃣ End Session',
       },
     ]);
   }

@@ -1,6 +1,8 @@
 const bankingService = require('./bankingService');
-const validators = require('../utils/validators');
-const logger = require('../utils/logger');
+const liveChatService = require('./liveChatService');
+const lineService = require('./lineService');
+const validators = require('../../../common/utils/validators');
+const logger = require('../../../common/utils/logger');
 
 class DialogManager {
   async processMessage(userId, dialogState, input, attributes) {
@@ -42,15 +44,8 @@ class DialogManager {
         case 'MAIN_MENU':
           return this.handleMainMenuInput(input);
 
-        case 'LIVE_CHAT':
-          return {
-            messages: [
-              {
-                type: 'text',
-                text: '💬 Your message has been received.\n\nAn agent will respond shortly. Please allow a few moments for a team member to assist you.',
-              },
-            ],
-          };
+        case 'LIVE_CHAT_ACTIVE':
+          return await this._handleLiveChatMessage(userId, input);
 
         case 'SESSION_CLOSED':
           return {
@@ -789,6 +784,97 @@ class DialogManager {
       })
       .join('\n\n');
   }
+
+  /**
+   * Start live chat session
+   */
+  async _startLiveChat(userId) {
+    try {
+      // Get user profile for display name
+      const profile = await lineService.getProfile(userId);
+      const displayName = profile ? profile.displayName : 'Customer';
+
+      // Start live chat via middleware
+      await liveChatService.startLiveChat(userId, displayName, 'Customer initiated live chat');
+      logger.info(`Live chat started for user ${userId}`);
+
+      return {
+        messages: [
+          {
+            type: 'text',
+            text: '💬 Please wait while we connect you with an agent.\n\nA FAB Bank team member will assist you shortly. You can also reach us at:\n📞 +1 800 123 4567\n📧 support@fabbank.com\n\n💬 Chat available 24/7',
+          },
+        ],
+        newDialogState: 'LIVE_CHAT_ACTIVE',
+      };
+    } catch (error) {
+      logger.error(`Failed to start live chat for ${userId}: ${error.message}`);
+      // Continue with live chat anyway - user can still chat
+      return {
+        messages: [
+          {
+            type: 'text',
+            text: '💬 Connecting you with an agent...\n\nYou are now in live chat mode. Type your message to connect with a FAB Bank representative.',
+          },
+        ],
+        newDialogState: 'LIVE_CHAT_ACTIVE',
+      };
+    }
+  }
+
+  /**
+   * Handle messages during live chat
+   */
+  async _handleLiveChatMessage(userId, text) {
+    // Check for exit keywords
+    const exitKeywords = /\b(exit|quit|end chat|exit chat|close chat|back to bot|end live chat|end session|close session|menu|main menu|disconnect)\b/i;
+
+    if (exitKeywords.test(text)) {
+      await liveChatService.endLiveChat(userId);
+
+      // Check if user specifically asked to end session
+      if (/\b(end session|close session)\b/i.test(text)) {
+        return {
+          messages: [
+            {
+              type: 'text',
+              text: 'Thank you for using FAB Bank. Your session has ended. Please follow the bot again to start a new conversation.',
+            },
+          ],
+          newDialogState: 'SESSION_CLOSED',
+        };
+      }
+
+      // Otherwise return to main menu
+      return {
+        messages: [
+          {
+            type: 'text',
+            text: 'Your live chat session has ended. Thank you for connecting with us! 👋',
+          },
+          {
+            type: 'text',
+            text: 'Choose an option:\n\n1️⃣ Check Balance\n2️⃣ Card Services\n3️⃣ Mini Statement\n4️⃣ Live Chat\n5️⃣ End Session',
+          },
+        ],
+        newDialogState: 'MAIN_MENU',
+      };
+    }
+
+    // Forward message to agent
+    try {
+      await liveChatService.sendMessage(userId, text);
+      logger.info(`Message forwarded to agent for user ${userId}`);
+    } catch (error) {
+      logger.error(`Failed to send message to agent: ${error.message}`);
+    }
+
+    // Don't send any reply - agent will respond via middleware
+    return { messages: [] };
+  }
 }
 
-module.exports = new DialogManager();
+// Create and export singleton instance for backward compatibility
+const defaultInstance = new DialogManager();
+
+module.exports = defaultInstance;

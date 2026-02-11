@@ -1,0 +1,51 @@
+{
+  "hotelName": "Sands Hotel Macau",
+  "hotelImageUrl": "https://pix10.agoda.net/hotelImages/281706/-1/a77bbebcc27ef04077cedc0ca3f366fa.jpg?ca=17&ce=1&s=1024x768",
+  "welcomeMessage": "Welcome to Sands Hotel Macau Concierge! 🏨\n\nHow can I assist you today?\n\nSelect an option below or type 'menu' to see the main menu.",
+  "features": {
+    "earlyCheckIn": true,
+    "bookingAmendments": true,
+    "liveChat": true,
+    "csatSurvey": true
+  },
+  "sessionTimeout": 300000,
+  "mainMenu": [
+    {
+      "label": "🏨 Early Check-in",
+      "action": "early_checkin"
+    },
+    {
+      "label": "✏️ Booking Amendments",
+      "action": "amend_booking"
+    },
+    {
+      "label": "💬 Live Chat",
+      "action": "live_chat"
+    },
+    {
+      "label": "👋 End Session",
+      "action": "end_session"
+    }
+  ],
+  "bookingAmendments": [
+    {
+      "label": "🍽️ Add Food",
+      "action": "food"
+    },
+    {
+      "label": "🛏️ Extra Bed",
+      "action": "extra_bed"
+    },
+    {
+      "label": "🚗 Airport Pickup",
+      "action": "airport_pickup"
+    },
+    {
+      "label": "↩️ Back to Menu",
+      "action": "main_menu"
+    }
+  ],
+  "foodTypes": ["Breakfast", "Lunch", "Dinner"],
+  "apiTimeout": 5000,
+  "maxRetries": 3
+}

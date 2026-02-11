@@ -1,7 +1,7 @@
 const lineService = require('../services/lineService');
 const sessionService = require('../services/sessionService');
 const dialogManager = require('../services/dialogManager');
-const logger = require('../utils/logger');
+const logger = require('../../../common/utils/logger');
 
 class MessageHandler {
   async handleTextMessage(replyToken, userId, message) {
