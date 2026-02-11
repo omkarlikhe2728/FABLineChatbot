@@ -1,0 +1,153 @@
+const axios = require('axios');
+const logger = require('../../../common/utils/logger');
+
+class LiveChatService {
+  constructor(config = {}) {
+    this.baseUrl = config.baseUrl || process.env.ANA_LIVE_CHAT_API_URL;
+    this.timeout = config.timeout || 5000;
+
+    if (!this.baseUrl) {
+      logger.warn('ANA LiveChatService initialized without API URL (live chat will be disabled)');
+    } else {
+      logger.info(`✅ ANA LiveChatService initialized with baseUrl: ${this.baseUrl}`);
+    }
+  }
+
+  /**
+   * Initiate live chat session via middleware
+   */
+  async startLiveChat(userId, displayName, initialMessage = '') {
+    try {
+      if (!this.baseUrl) {
+        logger.warn(`Live chat not configured for user ${userId}`);
+        return {
+          success: false,
+          error: 'Live chat service not configured',
+        };
+      }
+
+      logger.info(`Starting live chat for user ${userId}: ${displayName}`);
+
+      const response = await axios.post(
+        `${this.baseUrl}/api/line-direct/live-chat/start`,
+        {
+          userId,
+          displayName,
+          message: initialMessage || 'Customer initiated live chat',
+          channel: 'line',
+        },
+        {
+          timeout: this.timeout,
+        }
+      );
+
+      logger.info(`Live chat started successfully for user ${userId}`);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      logger.error(`Failed to start live chat for ${userId}: ${error.message}`);
+      return {
+        success: false,
+        error: error.message,
+        statusCode: error.response?.status,
+      };
+    }
+  }
+
+  /**
+   * Send message to live chat agent
+   */
+  async sendMessage(userId, message) {
+    try {
+      if (!this.baseUrl) {
+        logger.warn(`Live chat not configured for user ${userId}`);
+        return {
+          success: false,
+          error: 'Live chat service not configured',
+        };
+      }
+
+      logger.info(`Sending live chat message for user ${userId}`);
+
+      const response = await axios.post(
+        `${this.baseUrl}/api/line-direct/live-chat/message/ana`,
+        {
+          userId,
+          message,
+          channel: 'line',
+        },
+        {
+          timeout: this.timeout,
+        }
+      );
+
+      logger.info(`Live chat message sent successfully for user ${userId}`);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      logger.error(`Failed to send live chat message for ${userId}: ${error.message}`);
+      return {
+        success: false,
+        error: error.message,
+        statusCode: error.response?.status,
+      };
+    }
+  }
+
+  /**
+   * End live chat session
+   */
+  async endLiveChat(userId) {
+    try {
+      if (!this.baseUrl) {
+        logger.warn(`Live chat not configured for user ${userId}`);
+        return {
+          success: false,
+          error: 'Live chat service not configured',
+        };
+      }
+
+      logger.info(`Ending live chat for user ${userId}`);
+
+      const response = await axios.post(
+        `${this.baseUrl}/api/line-direct/live-chat/end`,
+        { userId },
+        {
+          timeout: this.timeout,
+        }
+      );
+
+      logger.info(`Live chat ended successfully for user ${userId}`);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      logger.error(`Failed to end live chat for ${userId}: ${error.message}`);
+      // Don't fail if end fails — user already disconnected
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Check if live chat is available
+   */
+  isAvailable() {
+    return !!this.baseUrl;
+  }
+}
+
+// Create singleton instance
+const defaultConfig = {
+  baseUrl: process.env.ANA_LIVE_CHAT_API_URL,
+};
+const defaultInstance = new LiveChatService(defaultConfig);
+
+module.exports = defaultInstance;

@@ -13,6 +13,13 @@
       "envFile": ".env.sands",
       "configFile": "config/sands.json",
       "modulePath": "./bots/sands"
+    },
+    {
+      "id": "ana",
+      "enabled": true,
+      "envFile": ".env.ana",
+      "configFile": "config/ana.json",
+      "modulePath": "./bots/ana"
     }
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "botName": "ANA - All Nippon Airways",
+  "airlineName": "ANA (All Nippon Airways)",
+  "welcomeImage": "https://www.ana.co.jp/www2/wws_common/images/top/tc1/hero/hero_pc_2512_FlyOtaku-Kawaii.jpg",
+  "features": {
+    "flightStatus": true,
+    "baggageAllowance": true,
+    "liveChat": true,
+    "csat": true
+  },
+  "mainMenu": {
+    "buttons": [
+      { "label": "✈️ Flight Status", "action": "flight_status" },
+      { "label": "🧳 Baggage Allowance", "action": "baggage_allowance" },
+      { "label": "💬 Live Chat", "action": "live_chat" }
+    ]
+  },
+  "sessionTimeout": 900000,
+  "apiBaseUrl": "https://password-reset.lab.bravishma.com:6507/api/v1/airline",
+  "apiTimeout": 5000
+}
