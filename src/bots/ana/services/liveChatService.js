@@ -29,14 +29,18 @@ class LiveChatService {
 
       logger.info(`Starting live chat for user ${userId}: ${displayName}`);
 
+      const startPayload = {
+        userId,
+        displayName,
+        message: initialMessage || 'Customer initiated live chat',
+        channel: 'line',
+      };
+
+      logger.debug(`📤 Posting to Agent - Start Payload:\n${JSON.stringify(startPayload, null, 2)}`);
+
       const response = await axios.post(
         `${this.baseUrl}/api/line-direct/live-chat/start`,
-        {
-          userId,
-          displayName,
-          message: initialMessage || 'Customer initiated live chat',
-          channel: 'line',
-        },
+        startPayload,
         {
           timeout: this.timeout,
         }
