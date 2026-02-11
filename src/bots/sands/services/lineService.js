@@ -3,12 +3,12 @@ const logger = require('../../../common/utils/logger');
 
 class LineService {
   constructor(config = {}) {
-    const channelAccessToken = config.accessToken || process.env.HOTEL_LINE_ACCESS_TOKEN;
+    const channelAccessToken = config.accessToken || process.env.SANDS_LINE_ACCESS_TOKEN;
 
     if (!channelAccessToken) {
       throw new Error(
-        'Hotel LineService initialization error: Missing HOTEL_LINE_ACCESS_TOKEN. ' +
-          'Check .env.hotel configuration.'
+        'Sands LineService initialization error: Missing SANDS_LINE_ACCESS_TOKEN. ' +
+          'Check .env.sands configuration.'
       );
     }
 
@@ -16,7 +16,7 @@ class LineService {
       channelAccessToken: channelAccessToken,
     });
 
-    logger.info('✅ Hotel LineService initialized');
+    logger.info('✅ Sands LineService initialized');
   }
 
   /**
@@ -89,7 +89,7 @@ class LineService {
 
 // Create singleton instance
 const defaultConfig = {
-  accessToken: process.env.HOTEL_LINE_ACCESS_TOKEN,
+  accessToken: process.env.SANDS_LINE_ACCESS_TOKEN,
 };
 const defaultInstance = new LineService(defaultConfig);
 

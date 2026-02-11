@@ -1,15 +1,15 @@
 const sessionStore = require('../../../common/services/sessionStore');
 const logger = require('../../../common/utils/logger');
 
-const HOTEL_BOT_ID = 'hotel';
+const SANDS_BOT_ID = 'sands';
 
-class HotelSessionService {
+class SandsSessionService {
   /**
    * Create a new session for a user
    */
   createSession(userId, initialData = {}) {
-    logger.info(`Creating session for hotel user ${userId}`);
-    const session = sessionStore.createSession(HOTEL_BOT_ID, userId, {
+    logger.info(`Creating session for sands user ${userId}`);
+    const session = sessionStore.createSession(SANDS_BOT_ID, userId, {
       dialogState: 'MAIN_MENU',
       attributes: initialData,
     });
@@ -20,7 +20,7 @@ class HotelSessionService {
    * Get user's session
    */
   getSession(userId) {
-    return sessionStore.getSession(HOTEL_BOT_ID, userId);
+    return sessionStore.getSession(SANDS_BOT_ID, userId);
   }
 
   /**
@@ -30,7 +30,7 @@ class HotelSessionService {
     const session = this.getSession(userId);
     if (session) {
       session.dialogState = newState;
-      logger.debug(`Hotel session state updated for ${userId}: ${newState}`);
+      logger.debug(`Sands session state updated for ${userId}: ${newState}`);
     }
   }
 
@@ -49,7 +49,7 @@ class HotelSessionService {
     const session = this.getSession(userId);
     if (session) {
       session.attributes[key] = value;
-      logger.debug(`Hotel session attribute set for ${userId}: ${key}`);
+      logger.debug(`Sands session attribute set for ${userId}: ${key}`);
     }
   }
 
@@ -65,8 +65,8 @@ class HotelSessionService {
    * Clear entire session
    */
   clearSession(userId) {
-    sessionStore.deleteSession(HOTEL_BOT_ID, userId);
-    logger.info(`Hotel session cleared for ${userId}`);
+    sessionStore.deleteSession(SANDS_BOT_ID, userId);
+    logger.info(`Sands session cleared for ${userId}`);
   }
 
   /**
@@ -82,6 +82,6 @@ class HotelSessionService {
 }
 
 // Create singleton instance
-const defaultInstance = new HotelSessionService();
+const defaultInstance = new SandsSessionService();
 
 module.exports = defaultInstance;

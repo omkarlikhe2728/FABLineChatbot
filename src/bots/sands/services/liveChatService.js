@@ -3,18 +3,18 @@ const logger = require('../../../common/utils/logger');
 
 class LiveChatService {
   constructor(config = {}) {
-    this.baseUrl = config.baseUrl || process.env.HOTEL_LIVE_CHAT_API_URL;
+    this.baseUrl = config.baseUrl || process.env.SANDS_LIVE_CHAT_API_URL;
     this.timeout = config.timeout || 5000;
     this.botId = config.botId || 'sands';
 
     if (!this.baseUrl) {
       throw new Error(
-        'Hotel LiveChatService initialization error: Missing HOTEL_LIVE_CHAT_API_URL. ' +
-          'Check .env.hotel configuration.'
+        'Sands LiveChatService initialization error: Missing SANDS_LIVE_CHAT_API_URL. ' +
+          'Check .env.sands configuration.'
       );
     }
 
-    logger.info(`✅ Hotel LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}`);
+    logger.info(`✅ Sands LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}`);
   }
 
   /**
@@ -139,7 +139,7 @@ class LiveChatService {
 
 // Create singleton instance
 const defaultConfig = {
-  baseUrl: process.env.HOTEL_LIVE_CHAT_API_URL,
+  baseUrl: process.env.SANDS_LIVE_CHAT_API_URL,
   botId: 'sands',
 };
 const defaultInstance = new LiveChatService(defaultConfig);

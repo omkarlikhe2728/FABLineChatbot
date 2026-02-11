@@ -2,9 +2,9 @@ const logger = require('../../../common/utils/logger');
 
 class TemplateService {
   constructor(config = {}) {
-    this.hotelImageUrl = config.hotelImageUrl || process.env.HOTEL_IMAGE_URL;
-    this.hotelName = config.hotelName || 'Sands Hotel Macau';
-    logger.info(`✅ Hotel TemplateService initialized`);
+    this.hotelImageUrl = config.hotelImageUrl || process.env.SANDS_IMAGE_URL;
+    this.hotelName = config.hotelName || process.env.SANDS_NAME || 'Sands Hotel Macau';
+    logger.info(`✅ Sands TemplateService initialized`);
   }
 
   /**
@@ -423,8 +423,8 @@ class TemplateService {
 
 // Create singleton instance
 const defaultInstance = new TemplateService({
-  hotelImageUrl: process.env.HOTEL_IMAGE_URL,
-  hotelName: process.env.HOTEL_NAME || 'Sands Hotel Macau',
+  hotelImageUrl: process.env.SANDS_IMAGE_URL,
+  hotelName: process.env.SANDS_NAME || 'Sands Hotel Macau',
 });
 
 module.exports = defaultInstance;

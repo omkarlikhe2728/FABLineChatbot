@@ -3,17 +3,17 @@ const logger = require('../../../common/utils/logger');
 
 class BookingService {
   constructor(config = {}) {
-    this.baseUrl = config.baseUrl || process.env.HOTEL_BOOKING_API_URL;
+    this.baseUrl = config.baseUrl || process.env.SANDS_BOOKING_API_URL;
     this.timeout = config.timeout || 5000;
 
     if (!this.baseUrl) {
       throw new Error(
-        'Hotel BookingService initialization error: Missing HOTEL_BOOKING_API_URL. ' +
-          'Check .env.hotel configuration.'
+        'Sands BookingService initialization error: Missing SANDS_BOOKING_API_URL. ' +
+          'Check .env.sands configuration.'
       );
     }
 
-    logger.info(`✅ Hotel BookingService initialized with baseUrl: ${this.baseUrl}`);
+    logger.info(`✅ Sands BookingService initialized with baseUrl: ${this.baseUrl}`);
   }
 
   /**
@@ -123,7 +123,7 @@ class BookingService {
 
 // Create singleton instance
 const defaultConfig = {
-  baseUrl: process.env.HOTEL_BOOKING_API_URL,
+  baseUrl: process.env.SANDS_BOOKING_API_URL,
 };
 const defaultInstance = new BookingService(defaultConfig);
 
