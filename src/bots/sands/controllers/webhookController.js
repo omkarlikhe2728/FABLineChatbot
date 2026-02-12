@@ -1,198 +1,228 @@
-const line = require('@line/bot-sdk');
-const logger = require('../../../common/utils/logger');
+const line = require("@line/bot-sdk");
+const logger = require("../../../common/utils/logger");
 
 // Import services
-const lineService = require('../services/lineService');
-const sessionService = require('../services/sessionService');
-const bookingService = require('../services/bookingService');
-const liveChatService = require('../services/liveChatService');
-const templateService = require('../services/templateService');
-const dialogManager = require('../services/dialogManager');
+const lineService = require("../services/lineService");
+const sessionService = require("../services/sessionService");
+const bookingService = require("../services/bookingService");
+const liveChatService = require("../services/liveChatService");
+const templateService = require("../services/templateService");
+const dialogManager = require("../services/dialogManager");
 
 class WebhookController {
-  constructor() {
-    this.initialized = false;
-  }
+	constructor() {
+		this.initialized = false;
+	}
 
-  /**
-   * Initialize dialog manager with all dependencies
-   */
-  _initializeDialogManager() {
-    if (!this.initialized) {
-      dialogManager.sessionService = sessionService;
-      dialogManager.lineService = lineService;
-      dialogManager.bookingService = bookingService;
-      dialogManager.liveChatService = liveChatService;
-      dialogManager.templateService = templateService;
-      this.initialized = true;
-      logger.info('✅ Hotel DialogManager dependencies injected');
-    }
-  }
+	/**
+	 * Initialize dialog manager with all dependencies
+	 */
+	_initializeDialogManager() {
+		if (!this.initialized) {
+			dialogManager.sessionService = sessionService;
+			dialogManager.lineService = lineService;
+			dialogManager.bookingService = bookingService;
+			dialogManager.liveChatService = liveChatService;
+			dialogManager.templateService = templateService;
+			this.initialized = true;
+			logger.info("✅ Hotel DialogManager dependencies injected");
+		}
+	}
 
-  /**
-   * Main webhook handler
-   */
-  async handleWebhook(req, res) {
-    try {
-      this._initializeDialogManager();
+	/**
+	 * Main webhook handler
+	 */
+	async handleWebhook(req, res) {
+		try {
+			this._initializeDialogManager();
 
-      const body = req.body;
-      logger.info(`Hotel webhook received - events: ${body.events?.length || 0}`);
+			const body = req.body;
+			logger.info(
+				`Hotel webhook received - events: ${body.events?.length || 0}`,
+			);
 
-      // Process each event
-      const promises = body.events.map((event) => this._processEvent(event));
-      await Promise.all(promises);
+			console.log("LINE_WEBHOOK_DATA=", JSON.stringify(body));
 
-      res.json({ message: 'ok' });
-    } catch (error) {
-      logger.error(`Webhook error: ${error.message}`, error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  }
+			// Process each event
+			const promises = body.events.map((event) => {
+				if (event.deliveryContext?.isRedelivery)
+					return res.json({ message: "ok" });
+				return this._processEvent(event);
+			});
+			await Promise.all(promises);
 
-  /**
-   * Process a single LINE event
-   */
-  async _processEvent(event) {
-    try {
-      logger.info(`Processing event: ${event.type}, replyToken: ${event.replyToken}`);
+			res.json({ message: "ok" });
+		} catch (error) {
+			logger.error(`Webhook error: ${error.message}`, error);
+			res.status(500).json({ error: "Internal Server Error" });
+		}
+	}
 
-      // Skip events without valid reply token
-      if (!this._isValidReplyToken(event.replyToken)) {
-        logger.info(`Skipping event with invalid reply token`);
-        return null;
-      }
+	/**
+	 * Process a single LINE event
+	 */
+	async _processEvent(event) {
+		try {
+			logger.info(
+				`Processing event: ${event.type}, replyToken: ${event.replyToken}`,
+			);
 
-      const userId = event.source.userId;
+			// Skip events without valid reply token
+			if (!this._isValidReplyToken(event.replyToken)) {
+				logger.info(`Skipping event with invalid reply token`);
+				return null;
+			}
 
-      // Auto-create session for all events except unfollow
-      if (event.type !== 'unfollow') {
-        sessionService.ensureSession(userId);
-      }
+			const userId = event.source.userId;
 
-      // Route by event type
-      switch (event.type) {
-        case 'follow':
-          return await this._handleFollowEvent(event, userId);
-        case 'message':
-          return await this._handleMessageEvent(event, userId);
-        case 'postback':
-          return await this._handlePostbackEvent(event, userId);
-        case 'unfollow':
-          return this._handleUnfollowEvent(userId);
-        default:
-          logger.warn(`Unhandled event type: ${event.type}`);
-          return null;
-      }
-    } catch (error) {
-      logger.error(`Error processing event: ${error.message}`);
-      throw error;
-    }
-  }
+			// Auto-create session for all events except unfollow
+			if (event.type !== "unfollow") {
+				sessionService.ensureSession(userId);
+			}
 
-  /**
-   * Handle follow event (user adds bot as friend)
-   */
-  async _handleFollowEvent(event, userId) {
-    logger.info(`User ${userId} followed the bot`);
+			// Route by event type
+			switch (event.type) {
+				case "follow":
+					return await this._handleFollowEvent(event, userId);
+				case "message":
+					return await this._handleMessageEvent(event, userId);
+				case "postback":
+					return await this._handlePostbackEvent(event, userId);
+				case "unfollow":
+					return this._handleUnfollowEvent(userId);
+				default:
+					logger.warn(`Unhandled event type: ${event.type}`);
+					return null;
+			}
+		} catch (error) {
+			logger.error(`Error processing event: ${error.message}`);
+			throw error;
+		}
+	}
 
-    const messages = await dialogManager.processMessage(userId, 'follow', {});
+	/**
+	 * Handle follow event (user adds bot as friend)
+	 */
+	async _handleFollowEvent(event, userId) {
+		logger.info(`User ${userId} followed the bot`);
 
-    if (messages) {
-      return this._replyMessages(event.replyToken, messages);
-    }
-    return null;
-  }
+		const messages = await dialogManager.processMessage(
+			userId,
+			"follow",
+			{},
+		);
 
-  /**
-   * Handle message event (text or other message types)
-   */
-  async _handleMessageEvent(event, userId) {
-    const session = sessionService.getSession(userId);
-    const currentState = session ? session.dialogState : 'MAIN_MENU';
+		if (messages) {
+			return this._replyMessages(event.replyToken, messages);
+		}
+		return null;
+	}
 
-    // In live chat mode - forward ALL message types as-is
-    if (currentState === 'LIVE_CHAT_ACTIVE') {
-      logger.info(`Live chat ${event.message.type} message from ${userId}`);
+	/**
+	 * Handle message event (text or other message types)
+	 */
+	async _handleMessageEvent(event, userId) {
+		const session = sessionService.getSession(userId);
+		const currentState = session ? session.dialogState : "MAIN_MENU";
 
-      // Pass entire message object to dialogManager
-      const messages = await dialogManager.processMessage(userId, 'livechat_message', event.message);
+		// In live chat mode - forward ALL message types as-is
+		if (currentState === "LIVE_CHAT_ACTIVE") {
+			logger.info(
+				`Live chat ${event.message.type} message from ${userId}`,
+			);
 
-      if (messages) {
-        return this._replyMessages(event.replyToken, messages);
-      }
-      return null;
-    }
+			// Pass entire message object to dialogManager
+			const messages = await dialogManager.processMessage(
+				userId,
+				"livechat_message",
+				event.message,
+			);
 
-    // Outside live chat, only handle text messages
-    if (event.message.type !== 'text') {
-      logger.info(`Skipping non-text message type: ${event.message.type}`);
-      return null;
-    }
+			if (messages) {
+				return this._replyMessages(event.replyToken, messages);
+			}
+			return null;
+		}
 
-    const messageText = event.message.text;
-    logger.info(`Text message from ${userId}: "${messageText}"`);
+		// Outside live chat, only handle text messages
+		if (event.message.type !== "text") {
+			logger.info(
+				`Skipping non-text message type: ${event.message.type}`,
+			);
+			return null;
+		}
 
-    const messages = await dialogManager.processMessage(userId, 'text', messageText);
+		const messageText = event.message.text;
+		logger.info(`Text message from ${userId}: "${messageText}"`);
 
-    if (messages) {
-      return this._replyMessages(event.replyToken, messages);
-    }
+		const messages = await dialogManager.processMessage(
+			userId,
+			"text",
+			messageText,
+		);
 
-    // For live chat messages, don't reply (agent will reply via middleware)
-    return null;
-  }
+		if (messages) {
+			return this._replyMessages(event.replyToken, messages);
+		}
 
-  /**
-   * Handle postback event (button clicks)
-   */
-  async _handlePostbackEvent(event, userId) {
-    const postbackData = new URLSearchParams(event.postback.data);
-    const action = postbackData.get('action');
-    logger.info(`Postback action: ${action}, user: ${userId}`);
+		// For live chat messages, don't reply (agent will reply via middleware)
+		return null;
+	}
 
-    const messages = await dialogManager.processMessage(userId, 'postback', {
-      action: action,
-    });
+	/**
+	 * Handle postback event (button clicks)
+	 */
+	async _handlePostbackEvent(event, userId) {
+		const postbackData = new URLSearchParams(event.postback.data);
+		const action = postbackData.get("action");
+		logger.info(`Postback action: ${action}, user: ${userId}`);
 
-    if (messages) {
-      return this._replyMessages(event.replyToken, messages);
-    }
-    return null;
-  }
+		const messages = await dialogManager.processMessage(
+			userId,
+			"postback",
+			{
+				action: action,
+			},
+		);
 
-  /**
-   * Handle unfollow event (user removes bot from friends)
-   */
-  _handleUnfollowEvent(userId) {
-    logger.info(`User ${userId} unfollowed the bot`);
-    sessionService.clearSession(userId);
-    return null;
-  }
+		if (messages) {
+			return this._replyMessages(event.replyToken, messages);
+		}
+		return null;
+	}
 
-  /**
-   * Reply with messages
-   */
-  async _replyMessages(replyToken, messages) {
-    try {
-      logger.info(`Sending ${messages.length} messages`);
-      await lineService.reply(replyToken, messages);
-      return null;
-    } catch (error) {
-      logger.error(`Failed to send reply: ${error.message}`);
-      throw error;
-    }
-  }
+	/**
+	 * Handle unfollow event (user removes bot from friends)
+	 */
+	_handleUnfollowEvent(userId) {
+		logger.info(`User ${userId} unfollowed the bot`);
+		sessionService.clearSession(userId);
+		return null;
+	}
 
-  /**
-   * Check if reply token is valid
-   */
-  _isValidReplyToken(token) {
-    if (!token) return false;
-    if (/^0+$/.test(token)) return false;
-    if (token === 'ffffffffffffffffffffffffffffffff') return false;
-    return true;
-  }
+	/**
+	 * Reply with messages
+	 */
+	async _replyMessages(replyToken, messages) {
+		try {
+			logger.info(`Sending ${messages.length} messages`);
+			await lineService.reply(replyToken, messages);
+			return null;
+		} catch (error) {
+			logger.error(`Failed to send reply: ${error.message}`);
+			throw error;
+		}
+	}
+
+	/**
+	 * Check if reply token is valid
+	 */
+	_isValidReplyToken(token) {
+		if (!token) return false;
+		if (/^0+$/.test(token)) return false;
+		if (token === "ffffffffffffffffffffffffffffffff") return false;
+		return true;
+	}
 }
 
 // Create and export singleton instance
