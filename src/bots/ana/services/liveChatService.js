@@ -1,16 +1,21 @@
 const axios = require('axios');
 const logger = require('../../../common/utils/logger');
 
+const lineService = require('../services/lineService');
+
 class LiveChatService {
   constructor(config = {}) {
     this.baseUrl = config.baseUrl || process.env.ANA_LIVE_CHAT_API_URL;
     this.timeout = config.timeout || 5000;
     this.botId = config.botId || 'ana';
+    this.tenantId = config.tenantId || 'ana';
+
+    this.lineService = lineService;
 
     if (!this.baseUrl) {
       logger.warn('ANA LiveChatService initialized without API URL (live chat will be disabled)');
     } else {
-      logger.info(`✅ ANA LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}`);
+      logger.info(`✅ ANA LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`);
     }
   }
 
@@ -29,18 +34,19 @@ class LiveChatService {
 
       logger.info(`Starting live chat for user ${userId}: ${displayName}`);
 
-      const startPayload = {
-        userId,
-        displayName,
-        message: initialMessage || 'Customer initiated live chat',
-        channel: 'line',
+      let initMsg = {
+        type: 'text',
+        text: initialMessage || 'Customer initiated live chat',
       };
 
-      logger.debug(`📤 Posting to Agent - Start Payload:\n${JSON.stringify(startPayload, null, 2)}`);
-
       const response = await axios.post(
-        `${this.baseUrl}/api/line-direct/live-chat/start`,
-        startPayload,
+        `${this.baseUrl}/api/line-direct/live-chat/message/${this.tenantId}`,
+        {
+          userId,
+          displayName,
+          channel: 'line',
+          message: initMsg,
+        },
         {
           timeout: this.timeout,
         }
@@ -85,15 +91,18 @@ class LiveChatService {
       const messageType = message.type || 'text';
       logger.info(`Sending ${messageType} live chat message for user ${userId}`);
 
+      const profile = await this.lineService.getProfile(userId);
+
       // Send entire LINE message object to middleware
       const payload = {
         userId,
+        displayName: profile.displayName,
         channel: 'line',
-        message: message,  // Complete LINE message object (type, id, text, contentProvider, etc.)
+        message: message, // Complete LINE message object (type, id, text, contentProvider, etc.)
       };
 
       const response = await axios.post(
-        `${this.baseUrl}/api/line-direct/live-chat/message/${this.botId}`,
+        `${this.baseUrl}/api/line-direct/live-chat/message/${this.tenantId}`,
         payload,
         {
           timeout: this.timeout,
@@ -108,6 +117,7 @@ class LiveChatService {
       };
     } catch (error) {
       logger.error(`Failed to send live chat message for ${userId}: ${error.message}`);
+      console.log('error ', error);
       return {
         success: false,
         error: error.message,
@@ -166,6 +176,7 @@ class LiveChatService {
 const defaultConfig = {
   baseUrl: process.env.ANA_LIVE_CHAT_API_URL,
   botId: 'ana',
+  tenantId: 'ana',
 };
 const defaultInstance = new LiveChatService(defaultConfig);
 

@@ -1,146 +1,177 @@
-const lineService = require('../services/lineService');
-const sessionService = require('../services/sessionService');
-const logger = require('../../../common/utils/logger');
+const lineService = require("../services/lineService");
+const sessionService = require("../services/sessionService");
+const logger = require("../../../common/utils/logger");
 
 class WebhookController {
-  async handleWebhook(req, res) {
-    try {
-      const { events } = req.body;
-      console.log('✅ WEBHOOK HANDLER CALLED');
-      console.log('📦 Events count:', events ? events.length : 0);
+	async handleWebhook(req, res) {
+		try {
+			const { events } = req.body;
 
-      // Process all events
-      await Promise.all(
-        events.map(async (event) => {
-          try {
-            await this.processEvent(event);
-          } catch (error) {
-            logger.error(`Error processing event:`, error);
-            console.log('❌ Event processing error:', error.message);
-          }
-        })
-      );
+			logger.info(
+				`FAB Bank webhook received - events: ${events?.length || 0}`,
+			);
 
-      console.log('✅ Webhook processing complete');
-      res.status(200).json({ message: 'OK' });
-    } catch (error) {
-      logger.error('Webhook error:', error);
-      console.log('❌ Webhook error:', error.message);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  }
+			console.log("LINE_WEBHOOK_DATA=", JSON.stringify(req.body));
 
-  async processEvent(event) {
-    const { type, replyToken, source } = event;
-    const userId = source.userId;
+			// Process all events
+			await Promise.all(
+				events.map(async (event) => {
+					try {
+						await this.processEvent(event);
+					} catch (error) {
+						logger.error(`Error processing event:`, error);
+						console.log(
+							"❌ Event processing error:",
+							error.message,
+						);
+					}
+				}),
+			);
 
-    console.log('📥 EVENT RECEIVED:', type.toUpperCase(), 'from user:', userId);
-    logger.info(`Event: ${type} from user ${userId}`);
+			console.log("✅ Webhook processing complete");
+			res.status(200).json({ message: "OK" });
+		} catch (error) {
+			logger.error("Webhook error:", error);
+			console.log("❌ Webhook error:", error.message);
+			res.status(500).json({ error: "Internal Server Error" });
+		}
+	}
 
-    // Create session if it doesn't exist (except for unfollow)
-    if (type !== 'unfollow') {
-      const existingSession = await sessionService.getSession(userId);
-      if (!existingSession) {
-        console.log(`📝 Creating new session for user ${userId}`);
-        await sessionService.createSession(userId);
-      }
-    }
+	async processEvent(event) {
+		const { type, replyToken, source } = event;
+		const userId = source.userId;
 
-    // Update last activity
-    await sessionService.updateLastActivity(userId);
+		console.log(
+			"📥 EVENT RECEIVED:",
+			type.toUpperCase(),
+			"from user:",
+			userId,
+		);
+		logger.info(`Event: ${type} from user ${userId}`);
 
-    switch (type) {
-      case 'follow':
-        await this.handleFollow(replyToken, userId);
-        break;
+		// Create session if it doesn't exist (except for unfollow)
+		if (type !== "unfollow") {
+			const existingSession = await sessionService.getSession(userId);
+			if (!existingSession) {
+				console.log(`📝 Creating new session for user ${userId}`);
+				await sessionService.createSession(userId);
+			}
+		}
 
-      case 'unfollow':
-        await sessionService.deleteSession(userId);
-        break;
+		// Update last activity
+		await sessionService.updateLastActivity(userId);
 
-      case 'message':
-        // Check if in live chat mode to allow all message types
-        const session = await sessionService.getSession(userId);
-        const currentState = session ? session.dialogState : 'MAIN_MENU';
+		switch (type) {
+			case "follow":
+				await this.handleFollow(replyToken, userId);
+				break;
 
-        if (currentState === 'LIVE_CHAT_ACTIVE') {
-          // In live chat - forward ALL message types
-          const messageHandler = require('../handlers/messageHandler');
-          await messageHandler.handleLiveChatMessage(replyToken, userId, event.message);
-        } else if (event.message.type === 'text') {
-          // Outside live chat - only handle text messages
-          const messageHandler = require('../handlers/messageHandler');
-          await messageHandler.handleTextMessage(replyToken, userId, event.message);
-        }
-        break;
+			case "unfollow":
+				await sessionService.deleteSession(userId);
+				break;
 
-      case 'postback':
-        const postbackHandler = require('../handlers/postbackHandler');
-        await postbackHandler.handlePostback(replyToken, userId, event.postback);
-        break;
+			case "message":
+				// Check if in live chat mode to allow all message types
+				const session = await sessionService.getSession(userId);
+				const currentState = session
+					? session.dialogState
+					: "MAIN_MENU";
 
-      default:
-        logger.debug(`Unknown event type: ${type}`);
-    }
-  }
+				if (currentState === "LIVE_CHAT_ACTIVE") {
+					// In live chat - forward ALL message types
+					const messageHandler = require("../handlers/messageHandler");
+					await messageHandler.handleLiveChatMessage(
+						replyToken,
+						userId,
+						event.message,
+					);
+				} else if (event.message.type === "text") {
+					// Outside live chat - only handle text messages
+					const messageHandler = require("../handlers/messageHandler");
+					await messageHandler.handleTextMessage(
+						replyToken,
+						userId,
+						event.message,
+					);
+				}
+				break;
 
-  async handleFollow(replyToken, userId) {
-    logger.info(`User ${userId} followed bot`);
+			case "postback":
+				const postbackHandler = require("../handlers/postbackHandler");
+				await postbackHandler.handlePostback(
+					replyToken,
+					userId,
+					event.postback,
+				);
+				break;
 
-    // Create session
-    await sessionService.createSession(userId);
+			default:
+				logger.debug(`Unknown event type: ${type}`);
+		}
+	}
 
-    // Send welcome message with image
-    const bannerImage = 'https://www.bankfab.com/-/media/fab-uds/personal/promotions/2025/mclaren-f1-cards-offer/mclaren-homepage-banner-en.jpg?h=670&iar=0&w=1440&hash=AACC95307F56FA4DD937F75AF531DA93';
+	async handleFollow(replyToken, userId) {
+		logger.info(`User ${userId} followed bot`);
 
-    const welcomeImageMessage = {
-      type: 'image',
-      originalContentUrl: bannerImage,
-      previewImageUrl: bannerImage,
-    };
+		// Create session
+		await sessionService.createSession(userId);
 
-    const welcomeMessage = {
-      type: 'text',
-      text: 'Welcome to FAB Bank! 🏦\nI\'m your banking assistant. How can I help you today?',
-    };
+		// Send welcome message with image
+		const bannerImage =
+			"https://www.bankfab.com/-/media/fab-uds/personal/promotions/2025/mclaren-f1-cards-offer/mclaren-homepage-banner-en.jpg?h=670&iar=0&w=1440&hash=AACC95307F56FA4DD937F75AF531DA93";
 
-    const menuMessage = {
-      type: 'template',
-      altText: 'Main Menu',
-      template: {
-        type: 'buttons',
-        text: 'Please select an option',
-        actions: [
-          {
-            type: 'postback',
-            label: 'Check Balance',
-            data: 'action=check_balance',
-            displayText: 'Check Balance',
-          },
-          {
-            type: 'postback',
-            label: 'Card Services',
-            data: 'action=card_services',
-            displayText: 'Card Services',
-          },
-          {
-            type: 'postback',
-            label: 'Live Chat',
-            data: 'action=live_chat',
-            displayText: 'Live Chat',
-          },
-          {
-            type: 'postback',
-            label: 'End Session',
-            data: 'action=end_session',
-            displayText: 'End Session',
-          },
-        ],
-      },
-    };
+		const welcomeImageMessage = {
+			type: "image",
+			originalContentUrl: bannerImage,
+			previewImageUrl: bannerImage,
+		};
 
-    await lineService.replyMessage(replyToken, [welcomeImageMessage, welcomeMessage, menuMessage]);
-  }
+		const welcomeMessage = {
+			type: "text",
+			text: "Welcome to FAB Bank! 🏦\nI'm your banking assistant. How can I help you today?",
+		};
+
+		const menuMessage = {
+			type: "template",
+			altText: "Main Menu",
+			template: {
+				type: "buttons",
+				text: "Please select an option",
+				actions: [
+					{
+						type: "postback",
+						label: "Check Balance",
+						data: "action=check_balance",
+						displayText: "Check Balance",
+					},
+					{
+						type: "postback",
+						label: "Card Services",
+						data: "action=card_services",
+						displayText: "Card Services",
+					},
+					{
+						type: "postback",
+						label: "Live Chat",
+						data: "action=live_chat",
+						displayText: "Live Chat",
+					},
+					{
+						type: "postback",
+						label: "End Session",
+						data: "action=end_session",
+						displayText: "End Session",
+					},
+				],
+			},
+		};
+
+		await lineService.replyMessage(replyToken, [
+			welcomeImageMessage,
+			welcomeMessage,
+			menuMessage,
+		]);
+	}
 }
 
 module.exports = new WebhookController();

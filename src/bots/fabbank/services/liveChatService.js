@@ -1,11 +1,16 @@
 const axios = require('axios');
 const logger = require('../../../common/utils/logger');
 
+const lineService = require('../services/lineService');
+
 class LiveChatService {
   constructor(config = {}) {
     this.baseUrl = config.baseUrl || process.env.FABBANK_LIVE_CHAT_API_URL;
     this.timeout = config.timeout || 5000;
     this.botId = config.botId || 'fabbank';
+    this.tenantId = config.tenantId || 'showmeavaya';
+
+    this.lineService = lineService;
 
     if (!this.baseUrl) {
       logger.warn(
@@ -13,7 +18,7 @@ class LiveChatService {
           'Live chat feature will not be available. Check .env.fabbank configuration.'
       );
     } else {
-      logger.info(`✅ FAB Bank LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}`);
+      logger.info(`✅ FAB Bank LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`);
     }
   }
 
@@ -32,13 +37,18 @@ class LiveChatService {
 
       logger.info(`Starting live chat for user ${userId}: ${displayName}`);
 
+      let initMsg = {
+        type: 'text',
+        text: initialMessage || 'Customer initiated live chat',
+      };
+
       const response = await axios.post(
-        `${this.baseUrl}/api/line-direct/live-chat/start`,
+        `${this.baseUrl}/api/line-direct/live-chat/message/${this.tenantId}`,
         {
           userId,
           displayName,
-          message: initialMessage || 'Customer initiated live chat',
           channel: 'line',
+          message: initMsg,
         },
         {
           timeout: this.timeout,
@@ -84,15 +94,18 @@ class LiveChatService {
       const messageType = message.type || 'text';
       logger.info(`Sending ${messageType} live chat message for user ${userId}`);
 
+      const profile = await this.lineService.getProfile(userId);
+
       // Send entire LINE message object to middleware
       const payload = {
         userId,
+        displayName: profile.displayName,
         channel: 'line',
-        message: message,  // Complete LINE message object (type, id, text, contentProvider, etc.)
+        message: message, // Complete LINE message object (type, id, text, contentProvider, etc.)
       };
 
       const response = await axios.post(
-        `${this.baseUrl}/api/line-direct/live-chat/message/${this.botId}`,
+        `${this.baseUrl}/api/line-direct/live-chat/message/${this.tenantId}`,
         payload,
         {
           timeout: this.timeout,
@@ -107,6 +120,7 @@ class LiveChatService {
       };
     } catch (error) {
       logger.error(`Failed to send live chat message for ${userId}: ${error.message}`);
+      console.log('error ', error);
       return {
         success: false,
         error: error.message,
@@ -165,6 +179,7 @@ class LiveChatService {
 const defaultConfig = {
   baseUrl: process.env.FABBANK_LIVE_CHAT_API_URL,
   botId: 'fabbank',
+  tenantId: 'showmeavaya',
 };
 const defaultInstance = new LiveChatService(defaultConfig);
 
