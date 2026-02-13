@@ -149,7 +149,7 @@ class WebhookController {
     const messages = await dialogManager.processMessage(
       userId,
       "text",
-      event
+      event.message.text
     );
 
     if (messages) {
