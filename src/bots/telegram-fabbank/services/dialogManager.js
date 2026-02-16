@@ -122,7 +122,7 @@ class TelegramDialogManager {
       const phone = validators.formatPhoneInput(phoneInput);
 
       // Send OTP
-      const otpResult = await bankingService.sendOtp(phone);
+      const otpResult = await bankingService.sendOTP(phone);
 
       if (!otpResult.success) {
         result.messages = [{
@@ -175,7 +175,7 @@ class TelegramDialogManager {
       }
 
       // Verify OTP
-      const verifyResult = await bankingService.verifyOtp(phone, otpInput);
+      const verifyResult = await bankingService.verifyOTP(phone, otpInput);
 
       if (!verifyResult.success) {
         result.messages = [{
