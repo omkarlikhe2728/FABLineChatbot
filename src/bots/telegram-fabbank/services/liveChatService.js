@@ -7,7 +7,7 @@ class TelegramLiveChatService {
     this.baseUrl = config.baseUrl || process.env.TELEGRAM_FABBANK_LIVE_CHAT_API_URL;
     this.timeout = config.timeout || parseInt(process.env.TELEGRAM_FABBANK_LIVE_CHAT_TIMEOUT || '20000');
     this.botId = config.botId || 'telegram-fabbank';
-    this.tenantId = config.tenantId || 'showmeavaya'; // Same tenant as LINE bot
+    this.tenantId = config.tenantId || 'telegram-fabbank'; // Use bot ID as tenant identifier
 
     if (!this.baseUrl) {
       logger.warn(
@@ -197,7 +197,7 @@ class TelegramLiveChatService {
 const defaultConfig = {
   baseUrl: process.env.TELEGRAM_FABBANK_LIVE_CHAT_API_URL,
   botId: 'telegram-fabbank',
-  tenantId: 'showmeavaya',
+  tenantId: 'telegram-fabbank',
   timeout: parseInt(process.env.TELEGRAM_FABBANK_LIVE_CHAT_TIMEOUT || '20000'),
 };
 const defaultInstance = new TelegramLiveChatService(defaultConfig);
