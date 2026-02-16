@@ -1,90 +1,205 @@
-// Telegram-specific live chat service (standalone, doesn't extend FAB Bank service)
+// Telegram live chat service - mirrors FAB Bank (LINE) pattern for consistency
 const axios = require('axios');
 const logger = require('../../../common/utils/logger');
 
 class TelegramLiveChatService {
   constructor(config = {}) {
-    this.baseUrl = config.baseUrl || process.env.TELEGRAM_FABBANK_LIVE_CHAT_API_URL || 'https://livechat-middleware.fabbank.com';
-    this.timeout = config.timeout || parseInt(process.env.TELEGRAM_FABBANK_LIVE_CHAT_TIMEOUT || '5000');
-    this.botId = 'telegram-fabbank';
+    this.baseUrl = config.baseUrl || process.env.TELEGRAM_FABBANK_LIVE_CHAT_API_URL;
+    this.timeout = config.timeout || parseInt(process.env.TELEGRAM_FABBANK_LIVE_CHAT_TIMEOUT || '20000');
+    this.botId = config.botId || 'telegram-fabbank';
+    this.tenantId = config.tenantId || 'showmeavaya'; // Same tenant as LINE bot
 
-    // Create axios client for API calls
-    this.client = axios.create({
-      baseURL: this.baseUrl,
-      timeout: this.timeout,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    logger.info(`✅ Telegram Live Chat Service initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}`);
+    if (!this.baseUrl) {
+      logger.warn(
+        'Telegram LiveChatService initialization warning: Missing TELEGRAM_FABBANK_LIVE_CHAT_API_URL. ' +
+        'Live chat feature will not be available. Check .env.telegram-fabbank configuration.'
+      );
+    } else {
+      logger.info(
+        `✅ Telegram LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`
+      );
+    }
   }
 
+  /**
+   * Initiate live chat session via middleware
+   * Uses same endpoint pattern as LINE bot for consistency
+   */
+  async startLiveChat(chatId, displayName, initialMessage = '') {
+    try {
+      if (!this.baseUrl) {
+        logger.warn(`Live chat API not configured for user ${chatId}`);
+        return {
+          success: false,
+          error: 'Live chat service not configured',
+        };
+      }
+
+      logger.info(`Starting live chat for user ${chatId}: ${displayName}`);
+
+      const initMsg = {
+        type: 'text',
+        text: initialMessage || 'Customer initiated live chat',
+      };
+
+      console.log(
+        'telegram_connector_url=',
+        `"${this.baseUrl}/api/telegram-direct/live-chat/message/${this.tenantId}"`
+      );
+      console.log(
+        'telegram_connector_payload=',
+        JSON.stringify({
+          chatId,
+          displayName,
+          channel: 'telegram',
+          message: initMsg,
+        })
+      );
+
+      const response = await axios.post(
+        `${this.baseUrl}/api/telegram-direct/live-chat/message/${this.tenantId}`,
+        {
+          chatId,
+          displayName,
+          channel: 'telegram',
+          message: initMsg,
+        },
+        {
+          timeout: this.timeout,
+        }
+      );
+
+      logger.info(`Live chat started successfully for user ${chatId}`);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      logger.error(`Failed to start live chat for ${chatId}: ${error.message}`);
+      return {
+        success: false,
+        error: error.message,
+        statusCode: error.response?.status,
+      };
+    }
+  }
+
+  /**
+   * Send message to live chat agent
+   * @param {string} chatId - Telegram user ID (chat ID)
+   * @param {Object|string} message - Telegram message object or text string
+   * @returns {Promise<Object>} - API response with success flag
+   */
   async sendMessage(chatId, message) {
     try {
-      const endpoint = `/api/telegram-direct/live-chat/message/${this.botId}`;
+      if (!this.baseUrl) {
+        logger.warn(`Live chat API not configured for user ${chatId}`);
+        return {
+          success: false,
+          error: 'Live chat service not configured',
+        };
+      }
 
+      // Handle backward compatibility - if string passed, wrap it
+      if (typeof message === 'string') {
+        message = { type: 'text', text: message };
+      }
+
+      const messageType = message.type || 'text';
+      logger.info(`Sending ${messageType} live chat message for user ${chatId}`);
+
+      // Send entire Telegram message object to middleware
       const payload = {
         chatId,
+        displayName: `Telegram User ${chatId}`,
         channel: 'telegram',
-        message
+        message: message,
       };
 
-      const response = await this.client.post(endpoint, payload);
-      return response.data;
+      console.log(
+        'telegram_connector_url=',
+        `"${this.baseUrl}/api/telegram-direct/live-chat/message/${this.tenantId}"`
+      );
+      console.log('telegram_connector_payload=', JSON.stringify(payload));
+
+      const response = await axios.post(
+        `${this.baseUrl}/api/telegram-direct/live-chat/message/${this.tenantId}`,
+        payload,
+        {
+          timeout: this.timeout,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+
+      logger.info(`Live chat ${messageType} sent successfully for user ${chatId}`);
+      return {
+        success: true,
+        data: response.data,
+      };
     } catch (error) {
-      logger.error(`Error sending live chat message for ${this.botId}:`, error.message);
-      throw error;
+      logger.error(`Failed to send live chat message for ${chatId}: ${error.message}`);
+      console.log('error ', error);
+      return {
+        success: false,
+        error: error.message,
+        statusCode: error.response?.status,
+      };
     }
   }
 
-  async startLiveChat(chatId, displayName, initialMessage) {
-    try {
-      const endpoint = `/api/telegram-direct/live-chat/start`;
-
-      const payload = {
-        chatId,
-        displayName,
-        message: initialMessage || 'Customer initiated live chat',
-        channel: 'telegram'
-      };
-
-      const response = await this.client.post(endpoint, payload);
-      return response.data;
-    } catch (error) {
-      logger.error(`Error starting live chat for ${this.botId}:`, error.message);
-      throw error;
-    }
-  }
-
+  /**
+   * End live chat session
+   */
   async endLiveChat(chatId) {
     try {
-      const endpoint = `/api/telegram-direct/live-chat/end`;
+      if (!this.baseUrl) {
+        logger.warn(`Live chat API not configured for user ${chatId}`);
+        return {
+          success: false,
+          error: 'Live chat service not configured',
+        };
+      }
 
-      const payload = {
-        chatId,
-        channel: 'telegram'
+      logger.info(`Ending live chat for user ${chatId}`);
+
+      const response = await axios.post(
+        `${this.baseUrl}/api/telegram-direct/live-chat/end`,
+        { chatId, channel: 'telegram' },
+        {
+          timeout: this.timeout,
+        }
+      );
+
+      logger.info(`Live chat ended successfully for user ${chatId}`);
+      return {
+        success: true,
+        data: response.data,
       };
-
-      const response = await this.client.post(endpoint, payload);
-      return response.data;
     } catch (error) {
-      logger.error(`Error ending live chat for ${this.botId}:`, error.message);
-      throw error;
+      logger.error(`Failed to end live chat for ${chatId}: ${error.message}`);
+      // Don't fail if end fails — user already disconnected
+      return {
+        success: false,
+        error: error.message,
+      };
     }
   }
 
+  /**
+   * Check if live chat is available
+   */
   isAvailable() {
     return !!this.baseUrl;
   }
 }
 
 // Create singleton instance
-const config = {
-  baseUrl: process.env.TELEGRAM_FABBANK_LIVE_CHAT_API_URL || 'https://livechat-middleware.fabbank.com',
-  timeout: parseInt(process.env.TELEGRAM_FABBANK_LIVE_CHAT_TIMEOUT || '5000')
+const defaultConfig = {
+  baseUrl: process.env.TELEGRAM_FABBANK_LIVE_CHAT_API_URL,
+  botId: 'telegram-fabbank',
+  tenantId: 'showmeavaya',
+  timeout: parseInt(process.env.TELEGRAM_FABBANK_LIVE_CHAT_TIMEOUT || '20000'),
 };
+const defaultInstance = new TelegramLiveChatService(defaultConfig);
 
-const liveChatService = new TelegramLiveChatService(config);
-
-module.exports = liveChatService;
+module.exports = defaultInstance;

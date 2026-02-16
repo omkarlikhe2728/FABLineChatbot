@@ -474,7 +474,7 @@ class TelegramDialogManager {
       // Check for exit keywords
       const exitKeywords = ['exit', 'quit', 'end', 'menu', 'back', '/menu'];
       if (exitKeywords.some(keyword => messageText.toLowerCase().includes(keyword))) {
-        await liveChatService.endLiveChat(chatId);
+        const endResult = await liveChatService.endLiveChat(chatId);
 
         result.messages = [{
           type: 'text',
@@ -486,10 +486,20 @@ class TelegramDialogManager {
       }
 
       // Send message to live chat
-      await liveChatService.sendMessage(chatId, {
+      const sendResult = await liveChatService.sendMessage(chatId, {
         type: 'text',
         text: messageText
       });
+
+      if (!sendResult.success) {
+        logger.error(`Failed to send live chat message: ${sendResult.error}`);
+        result.messages = [{
+          type: 'text',
+          text: templateService.formatErrorMessage('Error', 'Could not send message to live chat')
+        }];
+        result.newDialogState = 'LIVE_CHAT_ACTIVE';
+        return result;
+      }
 
       result.messages = [{
         type: 'text',

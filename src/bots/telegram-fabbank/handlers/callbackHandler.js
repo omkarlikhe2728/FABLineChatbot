@@ -97,11 +97,21 @@ class CallbackHandler {
       const displayName = chat.first_name || `User ${chatId}`;
 
       // Start live chat session
-      await liveChatService.startLiveChat(
+      const result = await liveChatService.startLiveChat(
         chatId,
         displayName,
         'User started live chat'
       );
+
+      // Check if live chat start was successful
+      if (!result.success) {
+        logger.error(`Failed to start live chat for ${chatId}: ${result.error}`);
+        await this.telegramService.sendMessage(
+          chatId,
+          '❌ *Live Chat Unavailable*\n\nCould not connect to live chat service. Please try again later.'
+        );
+        return;
+      }
 
       // Update dialog state
       this.sessionService.updateDialogState(chatId, 'LIVE_CHAT_ACTIVE');
