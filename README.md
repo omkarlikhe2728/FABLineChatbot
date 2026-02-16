@@ -1,6 +1,13 @@
-# FAB Bank LINE Banking Bot 🏦
+# FAB Bank Multi-Platform Banking Bots 🏦
 
-A complete LINE Messaging API chatbot implementation for FAB Bank providing real-time banking services including OTP authentication, balance inquiry, card management, and transaction history.
+A complete multi-platform chatbot implementation for FAB Bank providing real-time banking services across **LINE** and **Telegram** with OTP authentication, balance inquiry, card management, live chat, and transaction history.
+
+## 🌐 Supported Platforms
+
+- **LINE Messaging API** - [Setup Guide](./README.md)
+- **Telegram Bot API** - [Setup Guide](./TELEGRAM_BOT_README.md)
+- **Sands Hotel Bot** (LINE) - Concierge services
+- **ANA Airline Bot** (LINE) - Reservation services
 
 ## ✨ Features
 

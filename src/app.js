@@ -86,7 +86,28 @@ app.get('/health/:botId', (req, res) => {
   });
 });
 
-// Multi-Bot Webhook Endpoints
+// Telegram Webhook Endpoint (no signature validation needed)
+// Format: POST /webhook/telegram-*
+app.post('/webhook/telegram-:botId', async (req, res) => {
+  try {
+    const { botId } = req.params;
+    const fullBotId = `telegram-${botId}`;
+    const bot = BotRegistry.getBot(fullBotId);
+
+    if (!bot) {
+      logger.warn(`Telegram bot ${fullBotId} not found in registry`);
+      return res.status(404).json({ message: `Bot ${fullBotId} not found` });
+    }
+
+    logger.info(`📱 Telegram webhook received for bot: ${fullBotId}`);
+    await bot.handleWebhook(req, res);
+  } catch (error) {
+    logger.error('Telegram webhook handler error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// LINE Webhook Endpoints (with signature validation)
 // Format: POST /webhook/:botId
 app.post('/webhook/:botId', validateBotSignature, async (req, res) => {
   try {

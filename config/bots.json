@@ -20,6 +20,14 @@
       "envFile": ".env.ana",
       "configFile": "config/ana.json",
       "modulePath": "./bots/ana"
+    },
+    {
+      "id": "telegram-fabbank",
+      "enabled": true,
+      "platform": "telegram",
+      "envFile": ".env.telegram-fabbank",
+      "configFile": "config/telegram-fabbank.json",
+      "modulePath": "./bots/telegram-fabbank"
     }
   ]
 }

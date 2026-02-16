@@ -9,7 +9,12 @@
       "Bash(taskkill:*)",
       "Bash(git init:*)",
       "Bash(git config:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(cd:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(timeout 8 npm run dev:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
