@@ -51,6 +51,7 @@ class CommandHandler {
 
       // Send welcome message with photo (if configured)
       if (this.config.welcomeImage) {
+        logger.info(`🖼️ Sending welcome image from: ${this.config.welcomeImage}`);
         try {
           await this.telegramService.sendPhotoWithKeyboard(
             chatId,
@@ -58,9 +59,11 @@ class CommandHandler {
             templateService.formatWelcomeMessage(),
             templateService.getMainMenuKeyboard()
           );
+          logger.info(`✅ Welcome image sent successfully to ${chatId}`);
         } catch (photoError) {
           // Fallback to text if photo fails
-          logger.warn('Could not send welcome photo, using text instead:', photoError.message);
+          logger.warn(`⚠️ Could not send welcome photo: ${photoError.message}`);
+          logger.info(`Falling back to text message for ${chatId}`);
           await this.telegramService.sendMessageWithKeyboard(
             chatId,
             templateService.formatWelcomeMessage(),
@@ -69,6 +72,7 @@ class CommandHandler {
         }
       } else {
         // Send welcome message as text if no image configured
+        logger.info(`ℹ️ No welcome image configured, sending text message only`);
         await this.telegramService.sendMessageWithKeyboard(
           chatId,
           templateService.formatWelcomeMessage(),
