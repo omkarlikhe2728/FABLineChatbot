@@ -1,170 +1,219 @@
-const axios = require('axios');
-const logger = require('../../../common/utils/logger');
+const axios = require("axios");
+const logger = require("../../../common/utils/logger");
+
+const lineService = require("../services/lineService");
 
 class LiveChatService {
-  constructor(config = {}) {
-    this.baseUrl = config.baseUrl || process.env.FABBANK_LIVE_CHAT_API_URL;
-    this.timeout = config.timeout || 5000;
-    this.botId = config.botId || 'fabbank';
+	constructor(config = {}) {
+		this.baseUrl = config.baseUrl || process.env.FABBANK_LIVE_CHAT_API_URL;
+		this.timeout = config.timeout || 5000;
+		this.botId = config.botId || "fabbank";
+		this.tenantId = config.tenantId || "showmeavaya";
 
-    if (!this.baseUrl) {
-      logger.warn(
-        'FAB Bank LiveChatService initialization warning: Missing FABBANK_LIVE_CHAT_API_URL. ' +
-          'Live chat feature will not be available. Check .env.fabbank configuration.'
-      );
-    } else {
-      logger.info(`✅ FAB Bank LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}`);
-    }
-  }
+		this.lineService = lineService;
 
-  /**
-   * Initiate live chat session via middleware
-   */
-  async startLiveChat(userId, displayName, initialMessage = '') {
-    try {
-      if (!this.baseUrl) {
-        logger.warn(`Live chat API not configured for user ${userId}`);
-        return {
-          success: false,
-          error: 'Live chat service not configured',
-        };
-      }
+		if (!this.baseUrl) {
+			logger.warn(
+				"FAB Bank LiveChatService initialization warning: Missing FABBANK_LIVE_CHAT_API_URL. " +
+					"Live chat feature will not be available. Check .env.fabbank configuration.",
+			);
+		} else {
+			logger.info(
+				`✅ FAB Bank LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`,
+			);
+		}
+	}
 
-      logger.info(`Starting live chat for user ${userId}: ${displayName}`);
+	/**
+	 * Initiate live chat session via middleware
+	 */
+	async startLiveChat(userId, displayName, initialMessage = "") {
+		try {
+			if (!this.baseUrl) {
+				logger.warn(`Live chat API not configured for user ${userId}`);
+				return {
+					success: false,
+					error: "Live chat service not configured",
+				};
+			}
 
-      const response = await axios.post(
-        `${this.baseUrl}/api/line-direct/live-chat/start`,
-        {
-          userId,
-          displayName,
-          message: initialMessage || 'Customer initiated live chat',
-          channel: 'line',
-        },
-        {
-          timeout: this.timeout,
-        }
-      );
+			logger.info(
+				`Starting live chat for user ${userId}: ${displayName}`,
+			);
 
-      logger.info(`Live chat started successfully for user ${userId}`);
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      logger.error(`Failed to start live chat for ${userId}: ${error.message}`);
-      return {
-        success: false,
-        error: error.message,
-        statusCode: error.response?.status,
-      };
-    }
-  }
+			let initMsg = {
+				type: "text",
+				text: initialMessage || "Customer initiated live chat",
+			};
 
-  /**
-   * Send message to live chat agent
-   * @param {string} userId - LINE user ID
-   * @param {Object|string} message - Complete LINE message object or text string
-   * @returns {Promise<Object>} - API response
-   */
-  async sendMessage(userId, message) {
-    try {
-      if (!this.baseUrl) {
-        logger.warn(`Live chat API not configured for user ${userId}`);
-        return {
-          success: false,
-          error: 'Live chat service not configured',
-        };
-      }
+			console.log(
+				" connector_url=",
+				`"${this.baseUrl}/api/line-direct/live-chat/message/${this.tenantId}"`,
+			);
+			console.log(
+				"connector_payload=",
+				JSON.stringify({
+					userId,
+					displayName,
+					channel: "line",
+					message: initMsg,
+				}),
+			);
 
-      // Handle backward compatibility - if string passed, wrap it
-      if (typeof message === 'string') {
-        message = { type: 'text', text: message };
-      }
+			const response = await axios.post(
+				`${this.baseUrl}/api/line-direct/live-chat/message/${this.tenantId}`,
+				{
+					userId,
+					displayName,
+					channel: "line",
+					message: initMsg,
+				},
+				{
+					timeout: this.timeout,
+				},
+			);
 
-      const messageType = message.type || 'text';
-      logger.info(`Sending ${messageType} live chat message for user ${userId}`);
+			logger.info(`Live chat started successfully for user ${userId}`);
+			return {
+				success: true,
+				data: response.data,
+			};
+		} catch (error) {
+			logger.error(
+				`Failed to start live chat for ${userId}: ${error.message}`,
+			);
+			return {
+				success: false,
+				error: error.message,
+				statusCode: error.response?.status,
+			};
+		}
+	}
 
-      // Send entire LINE message object to middleware
-      const payload = {
-        userId,
-        channel: 'line',
-        message: message,  // Complete LINE message object (type, id, text, contentProvider, etc.)
-      };
+	/**
+	 * Send message to live chat agent
+	 * @param {string} userId - LINE user ID
+	 * @param {Object|string} message - Complete LINE message object or text string
+	 * @returns {Promise<Object>} - API response
+	 */
+	async sendMessage(userId, message) {
+		try {
+			if (!this.baseUrl) {
+				logger.warn(`Live chat API not configured for user ${userId}`);
+				return {
+					success: false,
+					error: "Live chat service not configured",
+				};
+			}
 
-      const response = await axios.post(
-        `${this.baseUrl}/api/line-direct/live-chat/message/${this.botId}`,
-        payload,
-        {
-          timeout: this.timeout,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
+			// Handle backward compatibility - if string passed, wrap it
+			if (typeof message === "string") {
+				message = { type: "text", text: message };
+			}
 
-      logger.info(`Live chat ${messageType} sent successfully for user ${userId}`);
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      logger.error(`Failed to send live chat message for ${userId}: ${error.message}`);
-      return {
-        success: false,
-        error: error.message,
-        statusCode: error.response?.status,
-      };
-    }
-  }
+			const messageType = message.type || "text";
+			logger.info(
+				`Sending ${messageType} live chat message for user ${userId}`,
+			);
 
-  /**
-   * End live chat session
-   */
-  async endLiveChat(userId) {
-    try {
-      if (!this.baseUrl) {
-        logger.warn(`Live chat API not configured for user ${userId}`);
-        return {
-          success: false,
-          error: 'Live chat service not configured',
-        };
-      }
+			const profile = await this.lineService.getProfile(userId);
 
-      logger.info(`Ending live chat for user ${userId}`);
+			// Send entire LINE message object to middleware
+			const payload = {
+				userId,
+				displayName: profile.displayName,
+				channel: "line",
+				message: message, // Complete LINE message object (type, id, text, contentProvider, etc.)
+			};
 
-      const response = await axios.post(
-        `${this.baseUrl}/api/line-direct/live-chat/end`,
-        { userId },
-        {
-          timeout: this.timeout,
-        }
-      );
+			console.log(
+				" connector_url=",
+				`"${this.baseUrl}/api/line-direct/live-chat/message/${this.tenantId}"`,
+			);
+			console.log("connector_payload=", JSON.stringify(payload));
 
-      logger.info(`Live chat ended successfully for user ${userId}`);
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      logger.error(`Failed to end live chat for ${userId}: ${error.message}`);
-      // Don't fail if end fails — user already disconnected
-      return {
-        success: false,
-        error: error.message,
-      };
-    }
-  }
+			const response = await axios.post(
+				`${this.baseUrl}/api/line-direct/live-chat/message/${this.tenantId}`,
+				payload,
+				{
+					timeout: this.timeout,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
 
-  /**
-   * Check if live chat is available
-   */
-  isAvailable() {
-    return !!this.baseUrl;
-  }
+			logger.info(
+				`Live chat ${messageType} sent successfully for user ${userId}`,
+			);
+			return {
+				success: true,
+				data: response.data,
+			};
+		} catch (error) {
+			logger.error(
+				`Failed to send live chat message for ${userId}: ${error.message}`,
+			);
+			console.log("error ", error);
+			return {
+				success: false,
+				error: error.message,
+				statusCode: error.response?.status,
+			};
+		}
+	}
+
+	/**
+	 * End live chat session
+	 */
+	async endLiveChat(userId) {
+		try {
+			if (!this.baseUrl) {
+				logger.warn(`Live chat API not configured for user ${userId}`);
+				return {
+					success: false,
+					error: "Live chat service not configured",
+				};
+			}
+
+			logger.info(`Ending live chat for user ${userId}`);
+
+			const response = await axios.post(
+				`${this.baseUrl}/api/line-direct/live-chat/end`,
+				{ userId },
+				{
+					timeout: this.timeout,
+				},
+			);
+
+			logger.info(`Live chat ended successfully for user ${userId}`);
+			return {
+				success: true,
+				data: response.data,
+			};
+		} catch (error) {
+			logger.error(
+				`Failed to end live chat for ${userId}: ${error.message}`,
+			);
+			// Don't fail if end fails — user already disconnected
+			return {
+				success: false,
+				error: error.message,
+			};
+		}
+	}
+
+	/**
+	 * Check if live chat is available
+	 */
+	isAvailable() {
+		return !!this.baseUrl;
+	}
 }
 
 // Create singleton instance
 const defaultConfig = {
-  baseUrl: process.env.FABBANK_LIVE_CHAT_API_URL,
-  botId: 'fabbank',
+	baseUrl: process.env.FABBANK_LIVE_CHAT_API_URL,
+	botId: "fabbank",
+	tenantId: "showmeavaya",
 };
 const defaultInstance = new LiveChatService(defaultConfig);
 
