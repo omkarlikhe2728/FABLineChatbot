@@ -4,7 +4,7 @@ const logger = require('../../../common/utils/logger');
 class BookingService {
   constructor(config = {}) {
     this.baseUrl = config.baseUrl || process.env.SANDS_BOOKING_API_URL;
-    this.timeout = config.timeout || 5000;
+    this.timeout = config.timeout || 20000;
 
     if (!this.baseUrl) {
       throw new Error(

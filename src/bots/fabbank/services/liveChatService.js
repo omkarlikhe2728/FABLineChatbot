@@ -6,7 +6,7 @@ const lineService = require("../services/lineService");
 class LiveChatService {
 	constructor(config = {}) {
 		this.baseUrl = config.baseUrl || process.env.FABBANK_LIVE_CHAT_API_URL;
-		this.timeout = config.timeout || 5000;
+		this.timeout = config.timeout || 20000;
 		this.botId = config.botId || "fabbank";
 		this.tenantId = config.tenantId || "showmeavaya";
 
