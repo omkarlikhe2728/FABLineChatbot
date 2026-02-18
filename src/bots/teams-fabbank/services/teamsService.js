@@ -5,33 +5,47 @@ class TeamsService {
   constructor(config) {
     this.appId = config.appId;
     this.appPassword = config.appPassword;
+    this.microsoftAppTenantId = config.microsoftAppTenantId;
     this.botId = 'teams-fabbank';
     this.config = config;
 
     // Initialize Bot Framework Adapter
+    logger.info(`🔐 Starting BotFrameworkAdapter initialization...`);
+    logger.info(`📝 Configuration: appId=${this.appId?.substring(0, 12)}..., tenantId=${this.microsoftAppTenantId?.substring(0, 12)}...`);
+
+    // Use direct credentials approach - more reliable for token generation
     try {
-      // Use environment credentials if available
-      const adapterConfig = {};
+      logger.debug(`Initializing BotFrameworkAdapter with direct credentials...`);
 
-      if (this.appId) {
-        adapterConfig.appId = this.appId;
-      }
-      if (this.appPassword) {
-        adapterConfig.appPassword = this.appPassword;
-      }
+      this.adapter = new BotFrameworkAdapter({
+        appId: this.appId,
+        appPassword: this.appPassword
+      });
 
-      if (this.appId && this.appPassword) {
-        logger.info('BotFrameworkAdapter configured with provided credentials');
-      } else {
-        logger.info('BotFrameworkAdapter running without credentials (development mode)');
-      }
+      logger.debug(`✅ BotFrameworkAdapter initialized with direct app credentials`);
+      logger.info(`✅ BotFrameworkAdapter ready (credentials: appId present, appPassword present)`);
+      this.authMethod = 'DirectCredentials';
 
-      this.adapter = new BotFrameworkAdapter(adapterConfig);
     } catch (error) {
-      logger.error('Error initializing BotFrameworkAdapter', error);
-      // Fallback: create adapter with minimal config
-      this.adapter = new BotFrameworkAdapter({});
+      logger.error('❌ Error initializing BotFrameworkAdapter:', error.message);
+      throw new Error(`Cannot initialize BotFrameworkAdapter: ${error.message}`);
     }
+
+    // Add error handling for adapter
+    this.adapter.onTurnError = async (context, error) => {
+      logger.error('🚨 BotFrameworkAdapter onTurnError:', {
+        message: error.message,
+        code: error.code,
+        statusCode: error.statusCode
+      });
+      try {
+        await context.sendTraceActivity('TurnError', `${error.message}`);
+      } catch (traceError) {
+        logger.error('Could not send trace activity:', traceError.message);
+      }
+    };
+
+    logger.info(`✅ BotFrameworkAdapter fully initialized with ${this.authMethod}`);
 
     // Store for sending replies
     this.conversationRefs = new Map();
@@ -76,14 +90,20 @@ class TeamsService {
       }
 
       logger.debug(`Sending Adaptive Card via context`);
+      logger.debug(`Activity from: ${activity?.from?.id}, conversation: ${activity?.conversation?.id}`);
+      logger.debug(`Context activity ID: ${context?.activity?.id}`);
+      logger.debug(`Service URL: ${context?.activity?.serviceUrl}`);
+      logger.debug(`Adapter type: ${this.adapter?.constructor?.name}`);
 
       // Card validation
       if (!cardJson.$schema) {
         logger.warn(`Card missing schema`);
       }
 
+      logger.debug(`About to call context.sendActivity()...`);
+
       // Send the card directly using the context
-      await context.sendActivity({
+      const response = await context.sendActivity({
         type: 'message',
         attachments: [{
           contentType: 'application/vnd.microsoft.card.adaptive',
@@ -91,10 +111,30 @@ class TeamsService {
         }]
       });
 
-      logger.debug(`Adaptive Card sent successfully`);
+      logger.info(`✅ Adaptive Card sent successfully. Response ID: ${response?.id}`);
       return { success: true };
     } catch (error) {
-      logger.error(`Error sending Adaptive Card`, error);
+      logger.error(`❌ Error sending Adaptive Card`, {
+        error: error.message,
+        code: error.code,
+        statusCode: error.statusCode,
+        activity: activity?.from?.id,
+        serviceUrl: context?.activity?.serviceUrl,
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
+      });
+
+      // Log more details for Teams authorization errors
+      if (error.message?.includes('Authorization') || error.statusCode === 401) {
+        logger.error(`❌ Authorization error (401) - Adapter may not be getting token correctly:`, {
+          errorCode: error.code,
+          statusCode: error.statusCode,
+          headers: error.headers,
+          message: error.message,
+          authMethod: this.authMethod,
+          adapterAuth: this.adapter?.authentication?.constructor?.name
+        });
+      }
+
       return { success: false, error: error.message };
     }
   }

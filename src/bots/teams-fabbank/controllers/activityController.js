@@ -42,7 +42,8 @@ class ActivityController {
       const text = activity.text?.trim() || '';
       const actionData = activity.value; // Adaptive Card action data
 
-      logger.info(`Message from ${userId}: ${text.substring(0, 50)}`);
+      logger.info(`📨 Message from ${userId}: ${text.substring(0, 50)}`);
+      logger.debug(`📦 Context available: ${!!this.context}, Service URL: ${this.context?.activity?.serviceUrl}`);
 
       // Get or create session
       let session = this.sessionService.getSession(userId);
