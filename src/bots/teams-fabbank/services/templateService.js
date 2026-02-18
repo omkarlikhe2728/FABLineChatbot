@@ -185,7 +185,33 @@ class TemplateService {
    */
   getCardListCard(cards) {
     if (!cards || cards.length === 0) {
-      return this.getErrorCard('No Cards', 'No cards found for this account');
+      return {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.4",
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "❌ No Cards",
+            "size": "large",
+            "weight": "bolder",
+            "color": "attention"
+          },
+          {
+            "type": "TextBlock",
+            "text": "No cards found for this account",
+            "wrap": true,
+            "color": "warning"
+          }
+        ],
+        "actions": [
+          {
+            "type": "Action.Submit",
+            "title": "↩️ Back to Main Menu",
+            "data": { "action": "back_to_menu" }
+          }
+        ]
+      };
     }
 
     const cardItems = cards.map((card, index) => ({
