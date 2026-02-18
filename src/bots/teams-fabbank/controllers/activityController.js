@@ -65,7 +65,7 @@ class ActivityController {
       // Send response cards
       if (result.cards && result.cards.length > 0) {
         for (const card of result.cards) {
-          await this.teamsService.sendAdaptiveCard(userId, card);
+          await this.teamsService.sendAdaptiveCard(activity, card);
         }
         logger.debug(`Sent ${result.cards.length} cards to ${userId}`);
       }
@@ -82,8 +82,7 @@ class ActivityController {
     } catch (error) {
       logger.error('Error in handleMessage', error);
       // Send error response to user
-      const userId = activity.from.id;
-      await this.teamsService.sendAdaptiveCard(userId,
+      await this.teamsService.sendAdaptiveCard(activity,
         this.templateService.getErrorCard('Error', 'An error occurred. Please try again.')
       );
     }
@@ -107,7 +106,7 @@ class ActivityController {
 
           // Send welcome card
           const welcomeCard = this.templateService.getWelcomeCard();
-          await this.teamsService.sendAdaptiveCard(userId, welcomeCard);
+          await this.teamsService.sendAdaptiveCard(activity, welcomeCard);
         }
       }
 

@@ -44,11 +44,17 @@ class TeamsFabBankBot {
 
   async handleWebhook(req, res) {
     try {
-      const activity = req.body;
-      await this.activityController.processActivity(activity, req, res);
+      // Use Bot Framework adapter to process the activity
+      await this.teamsService.getAdapter().process(req, res, async context => {
+        // Extract the activity and process it through the activity controller
+        const activity = context.activity;
+        await this.activityController.processActivity(activity, req, res);
+      });
     } catch (error) {
       logger.error('Error in TeamsFabBankBot.handleWebhook', error);
-      res.status(500).json({ error: error.message });
+      if (!res.headersSent) {
+        res.status(500).json({ error: error.message });
+      }
     }
   }
 }

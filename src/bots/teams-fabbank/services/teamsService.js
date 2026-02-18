@@ -1,3 +1,4 @@
+const { BotFrameworkAdapter, ConfigurationBotFrameworkAuthentication } = require('botbuilder');
 const logger = require('../../../common/utils/logger');
 
 class TeamsService {
@@ -6,30 +7,89 @@ class TeamsService {
     this.appPassword = config.appPassword;
     this.botId = 'teams-fabbank';
     this.config = config;
+
+    // Create credentials provider
+    const credentialsProvider = {
+      getAppPassword: async () => this.appPassword,
+      isTrustedService: async () => true, // Allow all services in dev
+      validateAppId: async () => true
+    };
+
+    // Initialize Bot Framework Adapter with custom auth in development
+    try {
+      if (process.env.NODE_ENV === 'production' && this.appId && this.appPassword) {
+        // Production: use standard Azure auth
+        this.adapter = new BotFrameworkAdapter({
+          appId: this.appId,
+          appPassword: this.appPassword
+        });
+      } else {
+        // Development: use permissive auth
+        this.adapter = new BotFrameworkAdapter({
+          appId: this.appId || 'test-app-id',
+          appPassword: this.appPassword || 'test-app-password',
+          credentialsProvider
+        });
+      }
+    } catch (error) {
+      logger.error('Error initializing BotFrameworkAdapter', error);
+      // Fallback: create adapter with minimal config
+      this.adapter = new BotFrameworkAdapter({
+        appId: this.appId || 'test-app-id',
+        appPassword: this.appPassword || 'test-app-password'
+      });
+    }
+
+    // Store for sending replies
+    this.conversationRefs = new Map();
+
     logger.info(`TeamsService initialized for ${this.botId}`);
   }
 
   /**
-   * Send an Adaptive Card to a Teams user
-   * Note: Actual sending happens via Express middleware with stored activity
+   * Get the adapter for processing activities
    */
-  async sendAdaptiveCard(userId, cardJson) {
+  getAdapter() {
+    return this.adapter;
+  }
+
+  /**
+   * Send an Adaptive Card to a Teams user via stored conversation reference
+   */
+  async sendAdaptiveCard(conversationReference, cardJson) {
     try {
       if (!cardJson) {
-        logger.warn(`No card to send to ${userId}`);
+        logger.warn(`No card to send`);
         return { success: true };
       }
 
-      logger.debug(`Preparing Adaptive Card for ${userId}`);
+      if (!conversationReference) {
+        logger.warn(`No conversation reference provided`);
+        return { success: false, error: 'No conversation reference' };
+      }
+
+      logger.debug(`Sending Adaptive Card via adapter`);
 
       // Card validation
       if (!cardJson.$schema) {
-        logger.warn(`Card missing schema for ${userId}`);
+        logger.warn(`Card missing schema`);
       }
 
-      return { success: true, data: { cardJson } };
+      // Send the card using the adapter
+      await this.adapter.continueConversation(conversationReference, async context => {
+        await context.sendActivity({
+          type: 'message',
+          attachments: [{
+            contentType: 'application/vnd.microsoft.card.adaptive',
+            content: cardJson
+          }]
+        });
+      });
+
+      logger.debug(`Adaptive Card sent successfully`);
+      return { success: true };
     } catch (error) {
-      logger.error(`Error preparing Adaptive Card for ${userId}`, error);
+      logger.error(`Error sending Adaptive Card`, error);
       return { success: false, error: error.message };
     }
   }
