@@ -52,7 +52,7 @@ class SessionService {
    */
   updateDialogState(userId, newState) {
     try {
-      sessionStore.updateDialogState(this.botId, userId, newState);
+      sessionStore.updateSession(this.botId, userId, { dialogState: newState });
       logger.debug(`Updated dialog state to ${newState} for user ${userId}`);
     } catch (error) {
       logger.error(`Error updating dialog state for ${userId}`, error);
@@ -64,8 +64,15 @@ class SessionService {
    */
   updateAttributes(userId, attrs) {
     try {
-      sessionStore.updateAttributes(this.botId, userId, attrs);
-      logger.debug(`Updated attributes for user ${userId}`);
+      const session = sessionStore.getSession(this.botId, userId);
+      if (session) {
+        const updatedAttrs = {
+          ...session.attributes,
+          ...attrs
+        };
+        sessionStore.updateSession(this.botId, userId, { attributes: updatedAttrs });
+        logger.debug(`Updated attributes for user ${userId}`);
+      }
     } catch (error) {
       logger.error(`Error updating attributes for ${userId}`, error);
     }
@@ -77,10 +84,15 @@ class SessionService {
   updateConversationReference(userId, activity) {
     try {
       // Store the entire activity as conversation reference
-      sessionStore.updateAttributes(this.botId, userId, {
-        conversationReference: activity
-      });
-      logger.debug(`Stored conversation reference for user ${userId}`);
+      const session = sessionStore.getSession(this.botId, userId);
+      if (session) {
+        const updatedAttrs = {
+          ...session.attributes,
+          conversationReference: activity
+        };
+        sessionStore.updateSession(this.botId, userId, { attributes: updatedAttrs });
+        logger.debug(`Stored conversation reference for user ${userId}`);
+      }
     } catch (error) {
       logger.error(`Error updating conversation reference for ${userId}`, error);
     }
