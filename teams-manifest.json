@@ -1,0 +1,98 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.17/MicrosoftTeams.schema.json",
+  "version": "1.0.3",
+  "manifestVersion": "1.17",
+  "id": "f07b1286-a157-4d8d-978b-5c2c9afae860",
+  "name": {
+    "short": "FAB Bank Teams Bot",
+    "full": "FAB Bank Teams Bot"
+  },
+  "developer": {
+    "name": "Bravishma Technologies",
+    "websiteUrl": "https://bravishma.com",
+    "privacyUrl": "https://bravishma.com",
+    "termsOfUseUrl": "https://bravishma.com"
+  },
+  "description": {
+    "short": "FAB Bank Bot for Teams",
+    "full": "A banking bot that helps check balance, manage cards, view statements, and connect with live agents"
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#0078D4",
+  "bots": [
+    {
+      "botId": "bd74fdbe-b319-415c-bc3d-d09c15cfc8ee",
+      "scopes": [
+        "personal",
+        "team",
+        "groupChat"
+      ],
+      "commandLists": [
+        {
+          "commands": [
+            {
+              "title": "Check Balance",
+              "description": "Check your account balance"
+            },
+            {
+              "title": "Cards",
+              "description": "View your cards"
+            },
+            {
+              "title": "Statement",
+              "description": "View mini statement"
+            },
+            {
+              "title": "Help",
+              "description": "Get help"
+            }
+          ],
+          "scopes": [
+            "personal"
+          ]
+        }
+      ],
+      "isNotificationOnly": false,
+      "supportsFiles": true
+    }
+  ],
+  "validDomains": [
+    "bravishma.com",
+    "scmcpvt.com",
+    "infobip-connector.lab.bravishma.com",
+    "recent-jaimee-nonexaggerative.ngrok-free.dev"
+  ],
+  "webApplicationInfo": {
+    "id": "bd74fdbe-b319-415c-bc3d-d09c15cfc8ee",
+    "resource": "api://recent-jaimee-nonexaggerative.ngrok-free.dev/bd74fdbe-b319-415c-bc3d-d09c15cfc8ee"
+  },
+  "authorization": {
+    "permissions": {
+      "resourceSpecific": [
+        {
+          "name": "ChatSettings.ReadWrite.Chat",
+          "type": "Application"
+        },
+        {
+          "name": "ChatMessage.Read.Chat",
+          "type": "Application"
+        },
+        {
+          "name": "ChatMessage.Send.Chat",
+          "type": "Application"
+        },
+        {
+          "name": "ChatMember.Read.Chat",
+          "type": "Application"
+        },
+        {
+          "name": "Chat.Manage.Chat",
+          "type": "Application"
+        }
+      ]
+    }
+  }
+}
