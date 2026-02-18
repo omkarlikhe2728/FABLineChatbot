@@ -44,30 +44,21 @@ class TeamsFabBankBot {
 
   async handleWebhook(req, res) {
     try {
-      // 🔧 CRITICAL: Sanitize incoming service URL BEFORE adapter.process()
-      // Teams sometimes appends tenant ID to service URL, breaking the API endpoint
-      if (req.body?.serviceUrl) {
-        const originalUrl = req.body.serviceUrl;
-        const cleanedMatch = req.body.serviceUrl.match(/^(https:\/\/smba\.trafficmanager\.net\/[a-z]+\/)/);
-        if (cleanedMatch) {
-          const cleanedUrl = cleanedMatch[1];
-          if (cleanedUrl !== originalUrl) {
-            logger.warn(`🔧 PRE-ADAPTER: Sanitizing service URL before adapter.process()`);
-            logger.warn(`   Original: ${originalUrl}`);
-            logger.warn(`   Cleaned:  ${cleanedUrl}`);
-            req.body.serviceUrl = cleanedUrl;
-            logger.info(`✅ Service URL sanitized for adapter`);
-          }
-        }
-      }
-
       // Use Bot Framework adapter to process the activity
+      // IMPORTANT: Do NOT modify req.body.serviceUrl - it's part of the JWT signature
+      // The adapter will validate the JWT using the original service URL
       await this.teamsService.getAdapter().process(req, res, async context => {
         // Extract the activity and process it through the activity controller
         const activity = context.activity;
 
         // Store the context for synchronous message sending
         this.lastContext = context;
+
+        // ✅ Service URL sanitization happens in activityController.processActivity()
+        // This is correct because:
+        // 1. JWT validation already passed (using original service URL)
+        // 2. We sanitize context for outbound API calls
+        // 3. Adapter can now use clean service URL for token generation and API calls
 
         await this.activityController.processActivity(activity, req, res, context);
       });
