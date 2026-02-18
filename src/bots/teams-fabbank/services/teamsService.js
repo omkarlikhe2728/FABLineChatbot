@@ -125,19 +125,51 @@ class TeamsService {
         logger.warn(`Card missing schema`);
       }
 
-      logger.debug(`About to call context.sendActivity()...`);
+      logger.debug(`About to send Adaptive Card...`);
 
-      // Send the card directly using the context
-      const response = await context.sendActivity({
-        type: 'message',
-        attachments: [{
-          contentType: 'application/vnd.microsoft.card.adaptive',
-          content: cardJson
-        }]
-      });
+      // 🔧 WORKAROUND: Use manual token + axios instead of context.sendActivity()
+      // Reason: BotFrameworkAdapter.context.sendActivity() fails with HTTP 401
+      //         even though manual token generation and API calls work perfectly
+      // Solution: Replicate what the adapter should do internally
 
-      logger.info(`✅ Adaptive Card sent successfully. Response ID: ${response?.id}`);
-      return { success: true };
+      try {
+        // Step 1: Get OAuth token using our manual TokenService
+        logger.debug(`Getting OAuth token for outbound message...`);
+        const token = await this.tokenService.getToken();
+        logger.debug(`✅ Token obtained`);
+
+        // Step 2: Prepare the API endpoint
+        const serviceUrl = context.activity.serviceUrl;
+        const conversationId = context.activity.conversation.id;
+        const endpoint = `${serviceUrl}v3/conversations/${conversationId}/activities`;
+
+        logger.debug(`API endpoint: ${endpoint}`);
+
+        // Step 3: Prepare the message payload
+        const axios = require('axios');
+        const payload = {
+          type: 'message',
+          attachments: [{
+            contentType: 'application/vnd.microsoft.card.adaptive',
+            content: cardJson
+          }]
+        };
+
+        // Step 4: Make the API call using axios
+        const response = await axios.post(endpoint, payload, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        });
+
+        logger.info(`✅ Adaptive Card sent successfully via direct API call. Response ID: ${response.data?.id}`);
+        return { success: true };
+      } catch (manualError) {
+        logger.warn(`Manual API call failed, will throw error: ${manualError.message}`);
+        throw manualError;
+      }
     } catch (error) {
       logger.error(`❌ Error sending Adaptive Card`, {
         error: error.message,
