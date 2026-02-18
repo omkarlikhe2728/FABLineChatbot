@@ -9,32 +9,28 @@ class TeamsService {
     this.config = config;
 
     // Initialize Bot Framework Adapter
-    // In development, disable authentication to avoid Azure AD validation errors
-    // In production, use real Azure credentials
     try {
-      if (process.env.NODE_ENV === 'production' && this.appId && this.appPassword) {
-        // Production: use standard Azure auth
-        logger.info('Using production Azure authentication');
-        this.adapter = new BotFrameworkAdapter({
-          appId: this.appId,
-          appPassword: this.appPassword
-        });
-      } else {
-        // Development: disable authentication
-        logger.info('Development mode: authentication disabled');
-        this.adapter = new BotFrameworkAdapter({
-          // Empty credentials for dev - disables auth validation
-          appId: undefined,
-          appPassword: undefined
-        });
+      // Use environment credentials if available
+      const adapterConfig = {};
+
+      if (this.appId) {
+        adapterConfig.appId = this.appId;
       }
+      if (this.appPassword) {
+        adapterConfig.appPassword = this.appPassword;
+      }
+
+      if (this.appId && this.appPassword) {
+        logger.info('BotFrameworkAdapter configured with provided credentials');
+      } else {
+        logger.info('BotFrameworkAdapter running without credentials (development mode)');
+      }
+
+      this.adapter = new BotFrameworkAdapter(adapterConfig);
     } catch (error) {
       logger.error('Error initializing BotFrameworkAdapter', error);
-      // Fallback: create adapter with no authentication
-      this.adapter = new BotFrameworkAdapter({
-        appId: undefined,
-        appPassword: undefined
-      });
+      // Fallback: create adapter with minimal config
+      this.adapter = new BotFrameworkAdapter({});
     }
 
     // Store for sending replies
