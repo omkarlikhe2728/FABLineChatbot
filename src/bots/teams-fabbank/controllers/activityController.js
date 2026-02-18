@@ -8,9 +8,12 @@ class ActivityController {
     this.templateService = templateService;
   }
 
-  async processActivity(activity, req, res) {
+  async processActivity(activity, req, res, context) {
     try {
       logger.debug(`Processing activity type: ${activity.type} from userId: ${activity.from?.id}`);
+
+      // Store context for use in handlers
+      this.context = context;
 
       switch (activity.type) {
         case 'message':
@@ -65,7 +68,7 @@ class ActivityController {
       // Send response cards
       if (result.cards && result.cards.length > 0) {
         for (const card of result.cards) {
-          await this.teamsService.sendAdaptiveCard(activity, card);
+          await this.teamsService.sendAdaptiveCard(activity, card, this.context);
         }
         logger.debug(`Sent ${result.cards.length} cards to ${userId}`);
       }
@@ -83,7 +86,8 @@ class ActivityController {
       logger.error('Error in handleMessage', error);
       // Send error response to user
       await this.teamsService.sendAdaptiveCard(activity,
-        this.templateService.getErrorCard('Error', 'An error occurred. Please try again.')
+        this.templateService.getErrorCard('Error', 'An error occurred. Please try again.'),
+        this.context
       );
     }
   }
@@ -106,7 +110,7 @@ class ActivityController {
 
           // Send welcome card
           const welcomeCard = this.templateService.getWelcomeCard();
-          await this.teamsService.sendAdaptiveCard(activity, welcomeCard);
+          await this.teamsService.sendAdaptiveCard(activity, welcomeCard, this.context);
         }
       }
 

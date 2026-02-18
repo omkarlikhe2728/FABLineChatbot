@@ -68,41 +68,34 @@ class TeamsService {
   }
 
   /**
-   * Send an Adaptive Card to a Teams user via activity/conversation reference
+   * Send an Adaptive Card to a Teams user via context (synchronous during message handling)
    */
-  async sendAdaptiveCard(activityOrRef, cardJson) {
+  async sendAdaptiveCard(activity, cardJson, context) {
     try {
       if (!cardJson) {
         logger.warn(`No card to send`);
         return { success: true };
       }
 
-      if (!activityOrRef) {
-        logger.warn(`No activity or conversation reference provided`);
-        return { success: false, error: 'No activity/reference' };
+      if (!context) {
+        logger.warn(`No context provided for card sending`);
+        return { success: false, error: 'No context' };
       }
 
-      logger.debug(`Sending Adaptive Card via adapter`);
+      logger.debug(`Sending Adaptive Card via context`);
 
       // Card validation
       if (!cardJson.$schema) {
         logger.warn(`Card missing schema`);
       }
 
-      // Create proper conversation reference from activity if needed
-      const conversationRef = activityOrRef.serviceUrl
-        ? this.createConversationReference(activityOrRef)
-        : activityOrRef;
-
-      // Send the card using the adapter
-      await this.adapter.continueConversation(conversationRef, async context => {
-        await context.sendActivity({
-          type: 'message',
-          attachments: [{
-            contentType: 'application/vnd.microsoft.card.adaptive',
-            content: cardJson
-          }]
-        });
+      // Send the card directly using the context
+      await context.sendActivity({
+        type: 'message',
+        attachments: [{
+          contentType: 'application/vnd.microsoft.card.adaptive',
+          content: cardJson
+        }]
       });
 
       logger.debug(`Adaptive Card sent successfully`);

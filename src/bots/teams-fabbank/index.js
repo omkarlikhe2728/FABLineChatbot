@@ -48,7 +48,11 @@ class TeamsFabBankBot {
       await this.teamsService.getAdapter().process(req, res, async context => {
         // Extract the activity and process it through the activity controller
         const activity = context.activity;
-        await this.activityController.processActivity(activity, req, res);
+
+        // Store the context for synchronous message sending
+        this.lastContext = context;
+
+        await this.activityController.processActivity(activity, req, res, context);
       });
     } catch (error) {
       logger.error('Error in TeamsFabBankBot.handleWebhook', error);
@@ -56,6 +60,13 @@ class TeamsFabBankBot {
         res.status(500).json({ error: error.message });
       }
     }
+  }
+
+  /**
+   * Get the last context for sending messages
+   */
+  getLastContext() {
+    return this.lastContext;
   }
 }
 
