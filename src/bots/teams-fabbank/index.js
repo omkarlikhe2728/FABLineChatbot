@@ -44,6 +44,23 @@ class TeamsFabBankBot {
 
   async handleWebhook(req, res) {
     try {
+      // 🔧 CRITICAL: Sanitize incoming service URL BEFORE adapter.process()
+      // Teams sometimes appends tenant ID to service URL, breaking the API endpoint
+      if (req.body?.serviceUrl) {
+        const originalUrl = req.body.serviceUrl;
+        const cleanedMatch = req.body.serviceUrl.match(/^(https:\/\/smba\.trafficmanager\.net\/[a-z]+\/)/);
+        if (cleanedMatch) {
+          const cleanedUrl = cleanedMatch[1];
+          if (cleanedUrl !== originalUrl) {
+            logger.warn(`🔧 PRE-ADAPTER: Sanitizing service URL before adapter.process()`);
+            logger.warn(`   Original: ${originalUrl}`);
+            logger.warn(`   Cleaned:  ${cleanedUrl}`);
+            req.body.serviceUrl = cleanedUrl;
+            logger.info(`✅ Service URL sanitized for adapter`);
+          }
+        }
+      }
+
       // Use Bot Framework adapter to process the activity
       await this.teamsService.getAdapter().process(req, res, async context => {
         // Extract the activity and process it through the activity controller
