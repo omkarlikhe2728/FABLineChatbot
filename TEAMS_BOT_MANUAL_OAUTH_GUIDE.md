@@ -72,7 +72,7 @@ You should see diagnostic output:
 ```
 📋 ========== TEAMS BOT CREDENTIALS DIAGNOSTIC ==========
 📌 Bot ID: teams-fabbank
-📌 App ID (full): bd74fdbe-b319-415c-bc3d-d09c15cfc8ee
+📌 App ID (full): YOUR_APP_ID_HERE
 📌 App Password Present: YES ✅
 📌 App Password Length: 40 characters
 ...
@@ -105,10 +105,10 @@ GET http://localhost:3002/api/teams/test-token
   },
   "decoded": {
     "aud": "https://api.botframework.com",
-    "iss": "https://sts.windows.net/070760c9-5bc3-44ab-a4fe-ee465c541500/",
+    "iss": "https://sts.windows.net/YOUR_TENANT_ID_HERE/",
     "iat": 1739900400,
     "exp": 1739904000,
-    "appid": "bd74fdbe-b319-415c-bc3d-d09c15cfc8ee"
+    "appid": "YOUR_APP_ID_HERE"
   }
 }
 ```
@@ -193,7 +193,7 @@ Description: AADSTS90002: Tenant ID is invalid
 3. Copy **Directory (tenant) ID** (UUID format)
 4. Update `.env.teams-fabbank`:
    ```bash
-   TEAMS_FABBANK_MICROSOFT_APP_TENANT_ID=070760c9-5bc3-44ab-a4fe-ee465c541500
+   TEAMS_FABBANK_MICROSOFT_APP_TENANT_ID=YOUR_TENANT_ID_HERE
    ```
 5. Restart bot and re-test
 

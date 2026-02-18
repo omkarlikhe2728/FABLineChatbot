@@ -58,11 +58,11 @@ TEAMS_FABBANK_APP_PASSWORD=<SECRET_VALUE_FROM_AZURE_CERTIFICATES_&_SECRETS>
 TEAMS_FABBANK_MICROSOFT_APP_TENANT_ID=<TENANT_ID_FROM_AZURE>
 ```
 
-**Example** (with real values):
+**Example** (placeholder format):
 ```bash
-TEAMS_FABBANK_APP_ID=bd74fdbe-b319-415c-bc3d-d09c15cfc8ee
-TEAMS_FABBANK_APP_PASSWORD=H6_8Q~xHCA5Hb4V7tEr-JTns3Kz72kJ00UZMOahL
-TEAMS_FABBANK_MICROSOFT_APP_TENANT_ID=070760c9-5bc3-44ab-a4fe-ee465c541500
+TEAMS_FABBANK_APP_ID=YOUR_APP_ID_HERE
+TEAMS_FABBANK_APP_PASSWORD=YOUR_APP_PASSWORD_HERE
+TEAMS_FABBANK_MICROSOFT_APP_TENANT_ID=YOUR_TENANT_ID_HERE
 ```
 
 ---
@@ -114,12 +114,12 @@ Look for this diagnostic output:
 ```
 📋 ========== TEAMS BOT CREDENTIALS DIAGNOSTIC ==========
 📌 Bot ID: teams-fabbank
-📌 App ID (full): bd74fdbe-b319-415c-bc3d-d09c15cfc8ee
-📌 App ID (masked): bd74fdbe...cfc8ee
+📌 App ID (full): YOUR_APP_ID_HERE
+📌 App ID (masked): YOUR_A...HERE
 📌 App Password Present: YES ✅
 📌 App Password Length: 40 characters
-📌 Tenant ID (full): 070760c9-5bc3-44ab-a4fe-ee465c541500
-📌 Tenant ID (masked): 070760c9...c541500
+📌 Tenant ID (full): YOUR_TENANT_ID_HERE
+📌 Tenant ID (masked): YOUR_T...HERE
 📌 Auth Method: DirectCredentials
 📌 Adapter Type: BotFrameworkAdapter
 ========================================================
@@ -157,8 +157,8 @@ When you call `context.sendActivity()`:
 
 ```
 1. BotFrameworkAdapter extracts credentials from constructor
-   ✅ App ID: bd74fdbe-b319-415c-bc3d-d09c15cfc8ee
-   ✅ App Password: H6_8Q~xHCA5Hb4V7tEr-JTns3Kz72kJ00UZMOahL
+   ✅ App ID: YOUR_APP_ID_HERE
+   ✅ App Password: YOUR_APP_PASSWORD_HERE
 
 2. Adapter makes HTTP POST to:
    https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token
@@ -166,8 +166,8 @@ When you call `context.sendActivity()`:
 3. Request body contains:
    {
      "grant_type": "client_credentials",
-     "client_id": "bd74fdbe-b319-415c-bc3d-d09c15cfc8ee",
-     "client_secret": "H6_8Q~xHCA5Hb4V7tEr-JTns3Kz72kJ00UZMOahL",
+     "client_id": "YOUR_APP_ID_HERE",
+     "client_secret": "YOUR_APP_PASSWORD_HERE",
      "scope": "https://api.botframework.com/.default"
    }
 
