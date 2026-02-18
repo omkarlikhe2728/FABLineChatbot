@@ -1,0 +1,45 @@
+{
+  "botName": "FAB Bank Teams Bot",
+  "features": {
+    "checkBalance": true,
+    "cardServices": true,
+    "liveChat": true,
+    "miniStatement": true
+  },
+  "menu": {
+    "buttons": [
+      {
+        "label": "💰 Check Balance",
+        "action": "check_balance"
+      },
+      {
+        "label": "🎴 Card Services",
+        "action": "card_services"
+      },
+      {
+        "label": "💬 Live Chat",
+        "action": "live_chat"
+      },
+      {
+        "label": "❌ End Session",
+        "action": "end_session"
+      }
+    ]
+  },
+  "sessionTimeout": 300000,
+  "otpExpiry": 300,
+  "commands": [
+    {
+      "command": "start",
+      "description": "Start the bot and show welcome message"
+    },
+    {
+      "command": "menu",
+      "description": "Show main menu"
+    },
+    {
+      "command": "help",
+      "description": "Get help"
+    }
+  ]
+}

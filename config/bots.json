@@ -28,6 +28,14 @@
       "envFile": ".env.telegram-fabbank",
       "configFile": "config/telegram-fabbank.json",
       "modulePath": "./bots/telegram-fabbank"
+    },
+    {
+      "id": "teams-fabbank",
+      "enabled": true,
+      "platform": "teams",
+      "envFile": ".env.teams-fabbank",
+      "configFile": "config/teams-fabbank.json",
+      "modulePath": "./bots/teams-fabbank"
     }
   ]
 }

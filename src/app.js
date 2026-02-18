@@ -129,6 +129,70 @@ app.get('/test/:botId', (req, res) => {
 
 })
 
+// Teams Webhook Endpoint (no signature validation - uses Bot Framework JWT auth)
+// Format: POST /api/teams/webhook
+app.post('/api/teams/webhook', async (req, res) => {
+  try {
+    const bot = BotRegistry.getBot('teams-fabbank');
+
+    if (!bot) {
+      logger.warn('Teams bot (teams-fabbank) not found in registry');
+      return res.status(404).json({ message: 'Teams bot not found' });
+    }
+
+    logger.info('💬 Teams webhook received');
+    await bot.handleWebhook(req, res);
+  } catch (error) {
+    logger.error('Teams webhook handler error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Teams Proactive Message Endpoint (for agent replies from middleware)
+// Format: POST /api/teams/push-message
+app.post('/api/teams/push-message', async (req, res) => {
+  try {
+    const { userId, text, attachments } = req.body;
+
+    if (!userId || !text) {
+      return res.status(400).json({ error: 'Missing userId or text' });
+    }
+
+    const sessionStore = require('./common/services/sessionStore');
+    const teamsService = BotRegistry.getBot('teams-fabbank')?.teamsService;
+
+    if (!teamsService) {
+      logger.error('Teams service not available');
+      return res.status(500).json({ error: 'Teams service not available' });
+    }
+
+    // Get session with stored conversation reference
+    const session = sessionStore.getSession('teams-fabbank', userId);
+    if (!session?.attributes?.conversationReference) {
+      logger.error(`No conversation reference found for user ${userId}`);
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    // Send proactive message
+    const result = await teamsService.sendProactiveMessage(
+      session.attributes.conversationReference,
+      text,
+      attachments
+    );
+
+    if (!result.success) {
+      logger.error(`Failed to send proactive message to ${userId}`);
+      return res.status(500).json({ error: 'Failed to send message' });
+    }
+
+    logger.info(`Proactive message sent to user ${userId}`);
+    res.status(200).json({ success: true, message: 'Message sent' });
+  } catch (error) {
+    logger.error('Teams push message handler error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   logger.error('Express error:', err);
