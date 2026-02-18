@@ -47,6 +47,19 @@ class TeamsService {
 
     logger.info(`✅ BotFrameworkAdapter fully initialized with ${this.authMethod}`);
 
+    // 🔍 DIAGNOSTIC LOGGING - Shows what credentials are being used
+    logger.info(`\n📋 ========== TEAMS BOT CREDENTIALS DIAGNOSTIC ==========`);
+    logger.info(`📌 Bot ID: ${this.botId}`);
+    logger.info(`📌 App ID (full): ${this.appId}`);
+    logger.info(`📌 App ID (masked): ${this.appId?.substring(0, 10)}...${this.appId?.substring(this.appId.length - 6)}`);
+    logger.info(`📌 App Password Present: ${!!this.appPassword ? 'YES ✅' : 'NO ❌'}`);
+    logger.info(`📌 App Password Length: ${this.appPassword?.length || 0} characters`);
+    logger.info(`📌 Tenant ID (full): ${this.microsoftAppTenantId}`);
+    logger.info(`📌 Tenant ID (masked): ${this.microsoftAppTenantId?.substring(0, 10)}...${this.microsoftAppTenantId?.substring(this.microsoftAppTenantId.length - 6)}`);
+    logger.info(`📌 Auth Method: ${this.authMethod}`);
+    logger.info(`📌 Adapter Type: ${this.adapter?.constructor?.name}`);
+    logger.info(`========================================================\n`);
+
     // Store for sending replies
     this.conversationRefs = new Map();
 
@@ -125,14 +138,18 @@ class TeamsService {
 
       // Log more details for Teams authorization errors
       if (error.message?.includes('Authorization') || error.statusCode === 401) {
-        logger.error(`❌ Authorization error (401) - Adapter may not be getting token correctly:`, {
-          errorCode: error.code,
-          statusCode: error.statusCode,
-          headers: error.headers,
-          message: error.message,
-          authMethod: this.authMethod,
-          adapterAuth: this.adapter?.authentication?.constructor?.name
-        });
+        logger.error(`\n❌ ========== AUTHORIZATION ERROR (401) ==========`);
+        logger.error(`This means the bot cannot generate an OAuth token to send messages.`);
+        logger.error(`\nVERIFICATION CHECKLIST:`);
+        logger.error(`1. Is App ID correct in Azure Portal > App registrations?`);
+        logger.error(`2. Is App Password/Secret valid and NOT expired?`);
+        logger.error(`3. Is Tenant ID correct in Azure Portal > Azure AD?`);
+        logger.error(`4. Do .env values exactly match Azure (no extra spaces)?`);
+        logger.error(`\nCurrent Configuration:`);
+        logger.error(`📌 App ID: ${this.appId}`);
+        logger.error(`📌 App Password Length: ${this.appPassword?.length} chars`);
+        logger.error(`📌 Tenant ID: ${this.microsoftAppTenantId}`);
+        logger.error(`===================================================\n`);
       }
 
       return { success: false, error: error.message };
