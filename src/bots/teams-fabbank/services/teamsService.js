@@ -54,18 +54,32 @@ class TeamsService {
   }
 
   /**
-   * Send an Adaptive Card to a Teams user via stored conversation reference
+   * Create a conversation reference from an activity
    */
-  async sendAdaptiveCard(conversationReference, cardJson) {
+  createConversationReference(activity) {
+    return {
+      activityId: activity.id,
+      user: activity.from,
+      bot: activity.recipient,
+      conversation: activity.conversation,
+      channelId: activity.channelId,
+      serviceUrl: activity.serviceUrl
+    };
+  }
+
+  /**
+   * Send an Adaptive Card to a Teams user via activity/conversation reference
+   */
+  async sendAdaptiveCard(activityOrRef, cardJson) {
     try {
       if (!cardJson) {
         logger.warn(`No card to send`);
         return { success: true };
       }
 
-      if (!conversationReference) {
-        logger.warn(`No conversation reference provided`);
-        return { success: false, error: 'No conversation reference' };
+      if (!activityOrRef) {
+        logger.warn(`No activity or conversation reference provided`);
+        return { success: false, error: 'No activity/reference' };
       }
 
       logger.debug(`Sending Adaptive Card via adapter`);
@@ -75,8 +89,13 @@ class TeamsService {
         logger.warn(`Card missing schema`);
       }
 
+      // Create proper conversation reference from activity if needed
+      const conversationRef = activityOrRef.serviceUrl
+        ? this.createConversationReference(activityOrRef)
+        : activityOrRef;
+
       // Send the card using the adapter
-      await this.adapter.continueConversation(conversationReference, async context => {
+      await this.adapter.continueConversation(conversationRef, async context => {
         await context.sendActivity({
           type: 'message',
           attachments: [{
