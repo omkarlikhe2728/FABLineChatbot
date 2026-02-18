@@ -1,6 +1,7 @@
 const { BotFrameworkAdapter, ConfigurationBotFrameworkAuthentication } = require('botbuilder');
 const logger = require('../../../common/utils/logger');
 const TokenService = require('./tokenService');
+const DebugService = require('./debugService');
 
 class TeamsService {
   constructor(config) {
@@ -12,6 +13,7 @@ class TeamsService {
 
     // Initialize manual token service for debugging/fallback
     this.tokenService = new TokenService(config);
+    this.debugService = new DebugService(this.tokenService);
 
     // Initialize Bot Framework Adapter
     logger.info(`🔐 Starting BotFrameworkAdapter initialization...`);
@@ -251,6 +253,38 @@ class TeamsService {
     }
 
     logger.info(`================================================\n`);
+    return result;
+  }
+
+  /**
+   * Test sending a message using manually generated token
+   * Simulates what BotFrameworkAdapter does internally
+   */
+  async testManualMessageSend(serviceUrl, conversationId) {
+    logger.info(`\n🧪 ========== TESTING MESSAGE SEND TO TEAMS API ==========`);
+    logger.info(`Using manually generated token to send test message`);
+    logger.info(`This shows what the adapter should be doing internally\n`);
+
+    const result = await this.debugService.testManualMessageSend(
+      serviceUrl,
+      conversationId,
+      'test-user'
+    );
+
+    if (result.success) {
+      logger.info(`✅ Direct message send SUCCESSFUL`);
+      logger.info(`This proves your credentials and service URL are valid.`);
+      logger.info(`If BotFrameworkAdapter still fails, the issue is in adapter config.`);
+    } else {
+      logger.error(`❌ Direct message send FAILED`);
+      logger.error(`Issue: HTTP ${result.status} - ${result.error}`);
+      if (result.status === 401) {
+        logger.error(`Even though token generation works, Teams API rejected the request.`);
+        logger.error(`Check: Service URL format and Conversation ID`);
+      }
+    }
+
+    logger.info(`=======================================================\n`);
     return result;
   }
 }

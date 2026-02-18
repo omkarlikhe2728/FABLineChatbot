@@ -230,6 +230,51 @@ app.get('/api/teams/test-token', async (req, res) => {
   }
 });
 
+// Teams Manual Message Send Test Endpoint (for debugging adapter issues)
+// Format: POST /api/teams/test-send
+// Body: { "serviceUrl": "...", "conversationId": "..." }
+app.post('/api/teams/test-send', async (req, res) => {
+  try {
+    const { serviceUrl, conversationId } = req.body;
+
+    if (!serviceUrl || !conversationId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing serviceUrl or conversationId in request body'
+      });
+    }
+
+    const bot = BotRegistry.getBot('teams-fabbank');
+    if (!bot || !bot.teamsService) {
+      return res.status(404).json({
+        success: false,
+        error: 'Teams bot not found in registry'
+      });
+    }
+
+    logger.info('🧪 Teams Manual Message Send Test requested');
+    logger.info(`   Service URL: ${serviceUrl}`);
+    logger.info(`   Conversation ID: ${conversationId}`);
+
+    // Test manual message send
+    const result = await bot.teamsService.testManualMessageSend(serviceUrl, conversationId);
+
+    res.status(result.success ? 200 : result.status || 500).json({
+      success: result.success,
+      status: result.status,
+      data: result.data,
+      error: result.error,
+      details: result.details
+    });
+  } catch (error) {
+    logger.error('Teams manual send test error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   logger.error('Express error:', err);
