@@ -193,6 +193,43 @@ app.post('/api/teams/push-message', async (req, res) => {
   }
 });
 
+// Teams OAuth Token Testing Endpoint (for debugging credential issues)
+// Format: GET /api/teams/test-token
+app.get('/api/teams/test-token', async (req, res) => {
+  try {
+    const bot = BotRegistry.getBot('teams-fabbank');
+
+    if (!bot || !bot.teamsService) {
+      return res.status(404).json({
+        success: false,
+        error: 'Teams bot not found in registry'
+      });
+    }
+
+    logger.info('🧪 Teams OAuth Token Test requested');
+
+    // Test token generation directly
+    const result = await bot.teamsService.testTokenGeneration();
+
+    res.status(result.success ? 200 : 401).json({
+      success: result.success,
+      token: result.success ? {
+        length: result.token.length,
+        prefix: result.token.substring(0, 50) + '...',
+        expiresAt: result.decoded?.exp ? new Date(result.decoded.exp * 1000).toISOString() : 'unknown'
+      } : null,
+      decoded: result.decoded,
+      error: result.error
+    });
+  } catch (error) {
+    logger.error('Teams token test error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   logger.error('Express error:', err);

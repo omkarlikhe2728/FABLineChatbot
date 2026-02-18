@@ -9,6 +9,7 @@ class TeamsFabBankConfig {
     // Teams Bot Framework Credentials
     this.appId = process.env.TEAMS_FABBANK_APP_ID;
     this.appPassword = process.env.TEAMS_FABBANK_APP_PASSWORD;
+    this.microsoftAppTenantId = process.env.TEAMS_FABBANK_MICROSOFT_APP_TENANT_ID;
 
     // Banking API
     this.bankingApiUrl = process.env.TEAMS_FABBANK_BANKING_API_URL ||

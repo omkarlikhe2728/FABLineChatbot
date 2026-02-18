@@ -1,5 +1,6 @@
 const { BotFrameworkAdapter, ConfigurationBotFrameworkAuthentication } = require('botbuilder');
 const logger = require('../../../common/utils/logger');
+const TokenService = require('./tokenService');
 
 class TeamsService {
   constructor(config) {
@@ -8,6 +9,9 @@ class TeamsService {
     this.microsoftAppTenantId = config.microsoftAppTenantId;
     this.botId = 'teams-fabbank';
     this.config = config;
+
+    // Initialize manual token service for debugging/fallback
+    this.tokenService = new TokenService(config);
 
     // Initialize Bot Framework Adapter
     logger.info(`🔐 Starting BotFrameworkAdapter initialization...`);
@@ -218,6 +222,36 @@ class TeamsService {
       logger.error('Error validating token', error);
       return false;
     }
+  }
+
+  /**
+   * Test OAuth token generation directly
+   * Useful for debugging credential issues
+   */
+  async testTokenGeneration() {
+    logger.info(`\n🧪 ========== TESTING OAUTH TOKEN GENERATION ==========`);
+    logger.info(`Testing direct OAuth token generation with current credentials...`);
+
+    const result = await this.tokenService.getTokenWithDetails();
+
+    if (result.success) {
+      logger.info(`✅ Token generation SUCCESSFUL`);
+      logger.info(`This means your credentials are valid and working.`);
+      logger.info(`If you're still getting HTTP 401 errors, the issue is likely:`);
+      logger.info(`  1. Service URL format (should be cleaned by activityController)`);
+      logger.info(`  2. Adapter configuration issue`);
+    } else {
+      logger.error(`❌ Token generation FAILED`);
+      logger.error(`Your credentials are not valid. Error: ${result.error}`);
+      logger.error(`Steps to fix:`);
+      logger.error(`  1. Check App ID in Azure Portal > App registrations`);
+      logger.error(`  2. Check client secret is not expired`);
+      logger.error(`  3. Create new secret if expired`);
+      logger.error(`  4. Verify Tenant ID matches Azure AD > Tenant ID`);
+    }
+
+    logger.info(`================================================\n`);
+    return result;
   }
 }
 

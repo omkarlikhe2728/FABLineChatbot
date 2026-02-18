@@ -24,7 +24,10 @@
       "Bash(lsof:*)",
       "Read(//d/Chatbot/Hotel Website Chatbot Design/FABLineChatbot/**)",
       "Bash(xargs kill:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(Get-Process node -ErrorAction SilentlyContinue)",
+      "Bash(Stop-Process -Force -ErrorAction SilentlyContinue)"
     ]
   }
 }

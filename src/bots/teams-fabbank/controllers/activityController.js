@@ -10,7 +10,37 @@ class ActivityController {
 
   async processActivity(activity, req, res, context) {
     try {
+      // 🔧 FIX: Sanitize incoming Service URL - Remove tenant ID if present
+      // Microsoft Teams sometimes appends tenant ID to the service URL, which breaks Bot Framework API calls
+      // Official format should be: https://smba.trafficmanager.net/{region}/ (e.g., /in/, /amer/, /emea/)
+      // Not: https://smba.trafficmanager.net/{region}/{tenantId}/
+      if (activity.serviceUrl) {
+        const cleanedMatch = activity.serviceUrl.match(/^(https:\/\/smba\.trafficmanager\.net\/[a-z]+\/)/);
+        if (cleanedMatch) {
+          const cleanedUrl = cleanedMatch[1];
+          if (cleanedUrl !== activity.serviceUrl) {
+            logger.warn(`⚠️  Service URL contains extra components. Sanitizing...`);
+            logger.warn(`   Original: ${activity.serviceUrl}`);
+            logger.warn(`   Cleaned:  ${cleanedUrl}`);
+            activity.serviceUrl = cleanedUrl;
+            logger.info(`✅ Service URL sanitized successfully`);
+          }
+        }
+      }
+
       logger.debug(`Processing activity type: ${activity.type} from userId: ${activity.from?.id}`);
+
+      // Also sanitize the context's activity service URL (BotFrameworkAdapter may use this)
+      if (context?.activity?.serviceUrl) {
+        const contextMatch = context.activity.serviceUrl.match(/^(https:\/\/smba\.trafficmanager\.net\/[a-z]+\/)/);
+        if (contextMatch) {
+          const contextCleanedUrl = contextMatch[1];
+          if (contextCleanedUrl !== context.activity.serviceUrl) {
+            logger.debug(`Also sanitizing context.activity.serviceUrl`);
+            context.activity.serviceUrl = contextCleanedUrl;
+          }
+        }
+      }
 
       // Store context for use in handlers
       this.context = context;
