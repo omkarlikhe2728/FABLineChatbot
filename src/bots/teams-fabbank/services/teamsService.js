@@ -108,11 +108,17 @@ class TeamsService {
         return { success: false, error: 'No context' };
       }
 
-      logger.debug(`Sending Adaptive Card via context`);
-      logger.debug(`Activity from: ${activity?.from?.id}, conversation: ${activity?.conversation?.id}`);
-      logger.debug(`Context activity ID: ${context?.activity?.id}`);
-      logger.debug(`Service URL: ${context?.activity?.serviceUrl}`);
-      logger.debug(`Adapter type: ${this.adapter?.constructor?.name}`);
+      logger.info(`\n📤 ========== OUTBOUND MESSAGE DIAGNOSTIC ==========`);
+      logger.info(`Sending Adaptive Card via context.sendActivity()`);
+      logger.info(`Activity from: ${activity?.from?.id}`);
+      logger.info(`Conversation: ${activity?.conversation?.id}`);
+      logger.info(`Context Activity ID: ${context?.activity?.id}`);
+      logger.info(`Service URL (from context): ${context?.activity?.serviceUrl}`);
+      logger.info(`Service URL Valid Format: ${this.debugService?.validateServiceUrl(context?.activity?.serviceUrl) ? 'YES ✅' : 'NO ❌'}`);
+      logger.info(`Service URL Region: ${this.debugService?.getServiceUrlFormat(context?.activity?.serviceUrl)}`);
+      logger.info(`Adapter Type: ${this.adapter?.constructor?.name}`);
+      logger.info(`Auth Method: ${this.authMethod}`);
+      logger.info(`================================================\n`);
 
       // Card validation
       if (!cardJson.$schema) {
