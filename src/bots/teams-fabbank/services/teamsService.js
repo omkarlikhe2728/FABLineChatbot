@@ -8,35 +8,32 @@ class TeamsService {
     this.botId = 'teams-fabbank';
     this.config = config;
 
-    // Create credentials provider
-    const credentialsProvider = {
-      getAppPassword: async () => this.appPassword,
-      isTrustedService: async () => true, // Allow all services in dev
-      validateAppId: async () => true
-    };
-
-    // Initialize Bot Framework Adapter with custom auth in development
+    // Initialize Bot Framework Adapter
+    // In development, disable authentication to avoid Azure AD validation errors
+    // In production, use real Azure credentials
     try {
       if (process.env.NODE_ENV === 'production' && this.appId && this.appPassword) {
         // Production: use standard Azure auth
+        logger.info('Using production Azure authentication');
         this.adapter = new BotFrameworkAdapter({
           appId: this.appId,
           appPassword: this.appPassword
         });
       } else {
-        // Development: use permissive auth
+        // Development: disable authentication
+        logger.info('Development mode: authentication disabled');
         this.adapter = new BotFrameworkAdapter({
-          appId: this.appId || 'test-app-id',
-          appPassword: this.appPassword || 'test-app-password',
-          credentialsProvider
+          // Empty credentials for dev - disables auth validation
+          appId: undefined,
+          appPassword: undefined
         });
       }
     } catch (error) {
       logger.error('Error initializing BotFrameworkAdapter', error);
-      // Fallback: create adapter with minimal config
+      // Fallback: create adapter with no authentication
       this.adapter = new BotFrameworkAdapter({
-        appId: this.appId || 'test-app-id',
-        appPassword: this.appPassword || 'test-app-password'
+        appId: undefined,
+        appPassword: undefined
       });
     }
 
