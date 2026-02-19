@@ -26,6 +26,9 @@ class TeamsFabBankConfig {
     this.tenantId = process.env.TEAMS_FABBANK_TENANT_ID || 'teams-fabbank';
     this.botName = process.env.TEAMS_FABBANK_BOT_NAME || 'FAB Bank Teams Bot';
 
+    // Welcome Message
+    this.welcomeImage = process.env.TEAMS_FABBANK_WELCOME_IMAGE || null;
+
     // Validation
     if (!this.appId || !this.appPassword) {
       throw new Error('Teams bot requires TEAMS_FABBANK_APP_ID and TEAMS_FABBANK_APP_PASSWORD');

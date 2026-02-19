@@ -11,26 +11,41 @@ class TemplateService {
    * Welcome card - shown when bot is added to conversation
    */
   getWelcomeCard() {
+    const body = [];
+
+    // Add welcome banner image if configured
+    if (this.config.welcomeImage) {
+      body.push({
+        "type": "Image",
+        "url": this.config.welcomeImage,
+        "size": "stretch",
+        "altText": "FAB Bank Welcome Banner"
+      });
+    }
+
+    // Add welcome text
+    body.push(
+      {
+        "type": "TextBlock",
+        "text": "👋 Welcome to FAB Bank!",
+        "size": "large",
+        "weight": "bolder",
+        "color": "accent"
+      },
+      {
+        "type": "TextBlock",
+        "text": "I'm your banking assistant. How can I help you today?",
+        "wrap": true,
+        "spacing": "medium",
+        "size": "default"
+      }
+    );
+
     return {
       "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
       "type": "AdaptiveCard",
       "version": "1.5",
-      "body": [
-        {
-          "type": "TextBlock",
-          "text": "👋 Welcome to FAB Bank!",
-          "size": "large",
-          "weight": "bolder",
-          "color": "accent"
-        },
-        {
-          "type": "TextBlock",
-          "text": "I'm your banking assistant. How can I help you today?",
-          "wrap": true,
-          "spacing": "medium",
-          "size": "default"
-        }
-      ],
+      "body": body,
       "actions": [
         {
           "type": "Action.Submit",
