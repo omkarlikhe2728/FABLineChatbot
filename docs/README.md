@@ -4,58 +4,45 @@ Comprehensive documentation for the Multi-Bot Platform supporting LINE, Teams, a
 
 ---
 
-## 🚀 **Quick Start**
+## 🚀 **Quick Start - Bot-Wise Deployment Guides**
 
-Start here if you're new to the project:
-- **[QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md)** - Setup and launch in 5 minutes
-- **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - Common commands and APIs at a glance
+**👉 [Go to `botwise/` folder](./botwise/README.md) for all bot deployment, setup, testing, and troubleshooting guides.**
 
----
+The `botwise/` folder contains everything you need:
 
-## 📋 **Implementation & Setup**
+### 📖 **Core Documentation**
+- **[botwise/README.md](./botwise/README.md)** - Overview of all 6 bots and navigation guide
+- **[botwise/SETUP.md](./botwise/SETUP.md)** - Initial project setup & dependencies
+- **[botwise/TESTING.md](./botwise/TESTING.md)** - Complete testing procedures for all bots
+- **[botwise/TROUBLESHOOTING.md](./botwise/TROUBLESHOOTING.md)** - Common issues & solutions
 
-### Core Setup
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Production deployment checklist
-- **[ENV_STRUCTURE.md](./ENV_STRUCTURE.md)** - Environment variables configuration guide
-- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Project structure overview
+### 🤖 **Bot-Specific Deployment Guides**
 
-### Implementation Progress
-- **[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)** - Current implementation status
-- **[IMPLEMENTATION_PHASES.md](./IMPLEMENTATION_PHASES.md)** - Completed phases and milestones
+#### LINE Bots
+- **[botwise/01-LINE-FABBANK-DEPLOYMENT.md](./botwise/01-LINE-FABBANK-DEPLOYMENT.md)** - FAB Bank LINE bot
+- **[botwise/02-LINE-SANDS-DEPLOYMENT.md](./botwise/02-LINE-SANDS-DEPLOYMENT.md)** - Sands Hotel LINE bot
+- **[botwise/03-LINE-ANA-DEPLOYMENT.md](./botwise/03-LINE-ANA-DEPLOYMENT.md)** - ANA Airline LINE bot
 
----
+#### Telegram Bot
+- **[botwise/04-TELEGRAM-FABBANK-DEPLOYMENT.md](./botwise/04-TELEGRAM-FABBANK-DEPLOYMENT.md)** - FAB Bank Telegram bot
 
-## 🤖 **Bot Implementations**
-
-### LINE Bot (FAB Bank)
-- **[LINE_BANKING_CHATBOT_IMPLEMENTATION.md](./LINE_BANKING_CHATBOT_IMPLEMENTATION.md)** - Complete LINE bot implementation guide
-- **[LINE_IMPLEMENTATION_CODE_TEMPLATES.md](./LINE_IMPLEMENTATION_CODE_TEMPLATES.md)** - Code templates and examples
-
-### Teams Bots
-- **[TEAMS_FABBANK_BOT_IMPLEMENTATION.md](./TEAMS_FABBANK_BOT_IMPLEMENTATION.md)** - Teams FAB Bank bot setup
-- **[TEAMS_ITSUPPORT_BOT_IMPLEMENTATION.md](./TEAMS_ITSUPPORT_BOT_IMPLEMENTATION.md)** - Teams IT Support bot setup
-- **[TEAMS_ITSUPPORT_IMPLEMENTATION_COMPLETE.md](./TEAMS_ITSUPPORT_IMPLEMENTATION_COMPLETE.md)** - Completed IT Support implementation
-
-### Telegram Bot
-- **[TELEGRAM_BOT_README.md](./TELEGRAM_BOT_README.md)** - Telegram bot overview
-- **[TELEGRAM_IMPLEMENTATION_SUMMARY.md](./TELEGRAM_IMPLEMENTATION_SUMMARY.md)** - Telegram implementation details
-- **[TELEGRAM_DEPLOYMENT_GUIDE.md](./TELEGRAM_DEPLOYMENT_GUIDE.md)** - Telegram deployment guide
+#### Microsoft Teams Bots
+- **[botwise/05-TEAMS-FABBANK-DEPLOYMENT.md](./botwise/05-TEAMS-FABBANK-DEPLOYMENT.md)** - FAB Bank Teams bot
+- **[botwise/06-TEAMS-ITSUPPORT-DEPLOYMENT.md](./botwise/06-TEAMS-ITSUPPORT-DEPLOYMENT.md)** - IT Support Teams bot
 
 ---
 
-## 🔧 **Teams Bot Troubleshooting**
+## 📋 **How to Get Started**
 
-Debugging guides for Teams bot issues:
-- **[TEAMS_BOT_SOLUTION_SUMMARY.md](./TEAMS_BOT_SOLUTION_SUMMARY.md)** - Overall solution summary
-- **[TEAMS_BOT_HTTP401_TROUBLESHOOTING.md](./TEAMS_BOT_HTTP401_TROUBLESHOOTING.md)** - Fix HTTP 401 authorization errors
-- **[TEAMS_BOT_MANUAL_OAUTH_GUIDE.md](./TEAMS_BOT_MANUAL_OAUTH_GUIDE.md)** - Manual OAuth token generation
-- **[TEAMS_BOT_DEBUGGING_ROADMAP.md](./TEAMS_BOT_DEBUGGING_ROADMAP.md)** - Complete debugging roadmap
+### For First-Time Deployment:
+1. Start with **[botwise/SETUP.md](./botwise/SETUP.md)** - Setup project & dependencies
+2. Choose your bot from the list above
+3. Follow that bot's specific deployment guide
+4. Use **[botwise/TESTING.md](./botwise/TESTING.md)** to verify everything works
 
----
-
-## ✅ **Testing & Verification**
-
-- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - Comprehensive testing guide for all bots
+### For Troubleshooting:
+- Check **[botwise/TROUBLESHOOTING.md](./botwise/TROUBLESHOOTING.md)** for common issues
+- Or see the troubleshooting section in your bot's deployment guide
 
 ---
 
@@ -64,10 +51,13 @@ Debugging guides for Teams bot issues:
 ```
 FABLineChatbot/
 ├── docs/                          # All documentation files
-│   ├── README.md                  # This file - documentation index
-│   ├── QUICK_START_GUIDE.md
-│   ├── QUICK_REFERENCE.md
-│   └── ... (other docs)
+│   ├── README.md                  # This file (main index)
+│   └── botwise/                   # Bot deployment guides (START HERE!)
+│       ├── README.md              # Bot overview & navigation
+│       ├── SETUP.md               # Project setup guide
+│       ├── TESTING.md             # Testing procedures
+│       ├── TROUBLESHOOTING.md     # Common issues & solutions
+│       └── 01-06-*.md             # Bot-specific guides
 ├── src/
 │   ├── bots/                      # Bot implementations
 │   │   ├── fabbank/               # LINE FAB Bank bot
@@ -80,9 +70,9 @@ FABLineChatbot/
 │   ├── app.js                     # Express app configuration
 │   └── server.js                  # Main server entry
 ├── config/                        # Bot configurations
-├── .env*                          # Environment files
+├── .env*                          # Environment files (never commit)
 ├── package.json                   # Dependencies
-└── README.md                       # Root README (updated)
+└── README.md                       # Root README
 ```
 
 ---
@@ -90,69 +80,61 @@ FABLineChatbot/
 ## 🔑 **Key Features**
 
 ✅ **Multi-Platform Support**
-- LINE Messaging API
-- Microsoft Teams (Bot Framework)
-- Telegram (Grammy)
+- LINE Messaging API (3 bots)
+- Microsoft Teams Bot Framework (2 bots)
+- Telegram Bot API (1 bot)
 
 ✅ **Shared Features Across All Bots**
 - Session management (in-memory with 5-min timeout)
-- Dialog state machine (15 states)
+- Dialog state machine (15+ states per bot)
 - Live chat integration with Avaya
 - Rich media support (images, videos, files)
-- OTP-based authentication
-- Banking API integration
+- OTP-based authentication (banking bots)
+- Banking/Service API integration
 
 ✅ **Production Ready**
 - Error handling and logging
-- Database migrations
 - Health check endpoints
 - Webhook validation
 - Configuration management
-
----
-
-## 📖 **How to Use This Documentation**
-
-1. **New to the project?** → Start with [QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md)
-2. **Need to deploy?** → Read [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
-3. **Troubleshooting Teams?** → Check [TEAMS_BOT_DEBUGGING_ROADMAP.md](./TEAMS_BOT_DEBUGGING_ROADMAP.md)
-4. **Want to test?** → See [TESTING_GUIDE.md](./TESTING_GUIDE.md)
-5. **Quick lookup?** → Use [QUICK_REFERENCE.md](./QUICK_REFERENCE.md)
+- Security best practices
 
 ---
 
 ## 🎯 **Current Status**
 
 ✅ **Completed**
-- All 5 bots fully implemented and tested
+- All 6 bots fully implemented and tested
 - Multi-platform support (LINE, Teams, Telegram)
 - Live chat integration
 - Dialog state machines
 - Rich media support
-- Database migrations
+- Comprehensive deployment guides (NEW!)
 
-⚙️ **In Progress**
-- Teams IT Support bot enhancements
-- Middleware optimization
-- Additional dialog flows
+✅ **Documentation**
+- Complete bot-wise deployment guides
+- Testing procedures for all bots
+- Troubleshooting guides
+- Security best practices
 
-📋 **Future**
+📋 **Next Steps**
+- Migrate to Redis for production session management
 - Analytics dashboard
 - Advanced reporting
 - Webhook authentication improvements
-- Redis session migration
 
 ---
 
 ## 📞 **Support**
 
-For issues or questions:
-1. Check the relevant bot documentation
-2. Review the troubleshooting guides
-3. Check the testing guide for verification steps
-4. Review environment configuration
+For help with:
+- **Setup** → See [botwise/SETUP.md](./botwise/SETUP.md)
+- **Specific Bot** → See that bot's deployment guide in botwise/
+- **Testing** → See [botwise/TESTING.md](./botwise/TESTING.md)
+- **Troubleshooting** → See [botwise/TROUBLESHOOTING.md](./botwise/TROUBLESHOOTING.md)
 
 ---
 
 **Last Updated:** February 2026
-**Version:** 2.0.0
+**Version:** 3.0.0 (Documentation Reorganized)
+**Status:** ✅ All 6 Bots + Complete Deployment Guides Ready
