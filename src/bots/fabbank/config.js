@@ -25,7 +25,8 @@ class FabBankConfig extends BaseBotConfig {
 
     // Set configuration properties
     this.botName = jsonConfig.botName || 'FAB Bank Bot';
-    this.welcomeImage = jsonConfig.welcomeImage || 'https://www.bankfab.com/-/media/fab-uds/personal/promotions/2025/mclaren-f1-cards-offer/mclaren-homepage-banner-en.jpg?h=670&iar=0&w=1440&hash=AACC95307F56FA4DD937F75AF531DA93';
+    // this.welcomeImage = jsonConfig.welcomeImage || 'https://www.bankfab.com/-/media/fab-uds/personal/promotions/2025/mclaren-f1-cards-offer/mclaren-homepage-banner-en.jpg?h=670&iar=0&w=1440&hash=AACC95307F56FA4DD937F75AF531DA93';
+    this.welcomeImage = jsonConfig.welcomeImage || 'https://media.istockphoto.com/id/2174486730/vector/business-interface-security-digital-banking-and-finance-information-transaction-technology.jpg?s=1024x1024&w=is&k=20&c=HWY12R8JzHIiExyypi2haGHT4Shpye0AtmzZqFuXUsE=';
     this.features = jsonConfig.features || {
       checkBalance: true,
       cardServices: true,

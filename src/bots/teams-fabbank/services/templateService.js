@@ -27,7 +27,8 @@ class TemplateService {
     body.push(
       {
         "type": "TextBlock",
-        "text": "👋 Welcome to FAB Bank!",
+        // "text": "👋 Welcome to FAB Bank!",
+        "text": "👋 Welcome to Beyond Bank!",
         "size": "large",
         "weight": "bolder",
         "color": "accent"

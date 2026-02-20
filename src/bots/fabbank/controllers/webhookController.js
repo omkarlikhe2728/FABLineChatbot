@@ -137,7 +137,8 @@ class WebhookController {
 
 		const welcomeMessage = {
 			type: "text",
-			text: "Welcome to FAB Bank! 🏦\nI'm your banking assistant. How can I help you today?",
+			// text: "Welcome to FAB Bank! 🏦\nI'm your banking assistant. How can I help you today?",
+			text: "Welcome to Beyond Bank! 🏦\nI'm your banking assistant. How can I assist you today?",
 		};
 
 		const menuMessage = {
