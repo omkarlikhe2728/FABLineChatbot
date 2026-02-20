@@ -1,41 +1,74 @@
+# ================================================
 # Dependencies
+# ================================================
 node_modules/
 package-lock.json
 yarn.lock
 
-# Environment variables
+# ================================================
+# Environment variables (NEVER COMMIT CREDENTIALS)
+# ================================================
 .env
 .env.local
 .env.*.local
+.env.*
 
-# Logs
+# ================================================
+# Logs & Runtime Files
+# ================================================
 logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+bot.log
+bot-startup.log
 
+# ================================================
 # Testing
+# ================================================
 coverage/
 .nyc_output/
 
-# IDE
+# ================================================
+# IDE & Editor
+# ================================================
 .vscode/
+.vscode-settings.json
 .idea/
 *.swp
 *.swo
 *~
 .DS_Store
+*.sublime-workspace
+*.sublime-project
 
-# OS
+# ================================================
+# Claude Code (User-Specific Settings)
+# ================================================
+.claude/
+.claude/*.json
+
+# ================================================
+# OS Files
+# ================================================
 .DS_Store
 Thumbs.db
+*.lnk
 
-# Build
+# ================================================
+# Build & Distribution
+# ================================================
 dist/
 build/
+*.tsbuildinfo
 
-# Temporary
+# ================================================
+# Temporary & Backup Files
+# ================================================
 temp/
 tmp/
+*.tmp
+*.bak
+*.backup
 FABLineChatbot.backup-*/
