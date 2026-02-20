@@ -36,6 +36,14 @@
       "envFile": ".env.teams-fabbank",
       "configFile": "config/teams-fabbank.json",
       "modulePath": "./bots/teams-fabbank"
+    },
+    {
+      "id": "teams-itsupport",
+      "enabled": true,
+      "platform": "teams",
+      "envFile": ".env.teams-itsupport",
+      "configFile": "config/teams-itsupport.json",
+      "modulePath": "./bots/teams-itsupport"
     }
   ]
 }

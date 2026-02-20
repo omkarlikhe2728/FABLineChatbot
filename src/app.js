@@ -275,6 +275,70 @@ app.post('/api/teams/test-send', async (req, res) => {
   }
 });
 
+// Teams IT Support Webhook Endpoint (no signature validation - uses Bot Framework JWT auth)
+// Format: POST /api/teams/itsupport/webhook
+app.post('/api/teams/itsupport/webhook', async (req, res) => {
+  try {
+    const bot = BotRegistry.getBot('teams-itsupport');
+
+    if (!bot) {
+      logger.warn('Teams IT Support bot (teams-itsupport) not found in registry');
+      return res.status(404).json({ message: 'Teams IT Support bot not found' });
+    }
+
+    logger.info('💬 Teams IT Support webhook received');
+    await bot.handleWebhook(req, res);
+  } catch (error) {
+    logger.error('Teams IT Support webhook handler error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Teams IT Support Proactive Message Endpoint (for agent replies from middleware)
+// Format: POST /api/teams/itsupport/push-message
+app.post('/api/teams/itsupport/push-message', async (req, res) => {
+  try {
+    const { userId, text, attachments } = req.body;
+
+    if (!userId || !text) {
+      return res.status(400).json({ error: 'Missing userId or text' });
+    }
+
+    const sessionStore = require('./common/services/sessionStore');
+    const teamsService = BotRegistry.getBot('teams-itsupport')?.teamsService;
+
+    if (!teamsService) {
+      logger.error('Teams IT Support service not available');
+      return res.status(500).json({ error: 'Teams IT Support service not available' });
+    }
+
+    // Get session with stored conversation reference
+    const session = sessionStore.getSession('teams-itsupport', userId);
+    if (!session?.attributes?.conversationReference) {
+      logger.error(`No conversation reference found for user ${userId}`);
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    // Send proactive message
+    const result = await teamsService.sendProactiveMessage(
+      session.attributes.conversationReference,
+      text,
+      attachments
+    );
+
+    if (!result.success) {
+      logger.error(`Failed to send proactive message to ${userId}`);
+      return res.status(500).json({ error: 'Failed to send message' });
+    }
+
+    logger.info(`Proactive message sent to IT Support user ${userId}`);
+    res.status(200).json({ success: true, message: 'Message sent' });
+  } catch (error) {
+    logger.error('Teams IT Support push message handler error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   logger.error('Express error:', err);
