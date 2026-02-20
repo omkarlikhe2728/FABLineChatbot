@@ -10,6 +10,9 @@ class ActivityController {
 
   async processActivity(activity, req, res, context) {
     try {
+      // Log full webhook data for debugging
+      console.log("TEAMS_WEBHOOK_DATA=", JSON.stringify(req.body));
+
       // 🔧 FIX: Sanitize incoming Service URL - Remove tenant ID if present
       // Microsoft Teams sometimes appends tenant ID to the service URL, which breaks Bot Framework API calls
       // Official format should be: https://smba.trafficmanager.net/{region}/ (e.g., /in/, /amer/, /emea/)
