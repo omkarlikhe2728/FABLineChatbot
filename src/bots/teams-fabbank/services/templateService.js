@@ -37,7 +37,7 @@ class TemplateService {
         "text": "I'm your banking assistant. How can I help you today?",
         "wrap": true,
         "spacing": "medium",
-        "size": "default"
+        "size": "medium"
       }
     );
 
@@ -91,12 +91,12 @@ class TemplateService {
           "type": "TextBlock",
           "text": message,
           "wrap": true,
-          "size": "default"
+          "size": "medium"
         },
         {
           "type": "TextBlock",
           "text": "Please reply with your phone number",
-          "size": "small",
+          "size": "medium",
           "color": "light",
           "spacing": "small"
         }
@@ -128,7 +128,7 @@ class TemplateService {
         {
           "type": "TextBlock",
           "text": "Please reply with exactly 6 digits",
-          "size": "small",
+          "size": "medium",
           "color": "light"
         }
       ]

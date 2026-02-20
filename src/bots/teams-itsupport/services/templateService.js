@@ -175,7 +175,7 @@ class TemplateService {
           "text": "💡 Tip: Include what you were doing when the issue occurred",
           "wrap": true,
           "spacing": "small",
-          "size": "small",
+          "size": "medium",
           "color": "light",
           "isSubtle": true
         }
@@ -232,7 +232,7 @@ class TemplateService {
           "text": "Is this correct? Submit to create the ticket or edit your response.",
           "wrap": true,
           "spacing": "medium",
-          "size": "small"
+          "size": "medium"
         }
       ],
       "actions": [
@@ -302,7 +302,7 @@ class TemplateService {
           "text": "📌 Save your ticket ID for reference",
           "wrap": true,
           "spacing": "medium",
-          "size": "small",
+          "size": "medium",
           "color": "accent"
         }
       ],
@@ -348,7 +348,7 @@ class TemplateService {
           "text": "Format: IT-YYYYMMDD-XXXXXX (e.g., IT-20260219-A1B2C3)",
           "wrap": true,
           "spacing": "small",
-          "size": "small",
+          "size": "medium",
           "color": "light",
           "isSubtle": true
         }
@@ -398,7 +398,7 @@ class TemplateService {
           "type": "TextBlock",
           "text": `Assigned to: ${data.assignedTo}`,
           "spacing": "medium",
-          "size": "small",
+          "size": "medium",
           "color": "accent"
         }] : []),
         ...(data.resolution ? [{
@@ -406,7 +406,7 @@ class TemplateService {
           "text": `Resolution: ${data.resolution}`,
           "wrap": true,
           "spacing": "medium",
-          "size": "small"
+          "size": "medium"
         }] : [])
       ],
       "actions": [
@@ -456,7 +456,7 @@ class TemplateService {
           "text": "Average wait time: 2-5 minutes",
           "wrap": true,
           "spacing": "small",
-          "size": "small",
+          "size": "medium",
           "color": "light"
         }
       ]
