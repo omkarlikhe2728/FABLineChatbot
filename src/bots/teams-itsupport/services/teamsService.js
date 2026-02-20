@@ -16,8 +16,8 @@ class TeamsService {
     this.debugService = new DebugService(this.tokenService);
 
     // Initialize Bot Framework Adapter
-    logger.info(`🔐 Starting BotFrameworkAdapter initialization...`);
-    logger.info(`📝 Configuration: appId=${this.appId?.substring(0, 12)}..., tenantId=${this.microsoftAppTenantId?.substring(0, 12)}...`);
+    logger.debug(`Starting BotFrameworkAdapter initialization`);
+    logger.debug(`Configuration: appId=${this.appId?.substring(0, 12)}..., tenantId=${this.microsoftAppTenantId?.substring(0, 12)}...`);
 
     // Use direct credentials approach - more reliable for token generation
     try {
@@ -28,12 +28,12 @@ class TeamsService {
         appPassword: this.appPassword
       });
 
-      logger.debug(`✅ BotFrameworkAdapter initialized with direct app credentials`);
-      logger.info(`✅ BotFrameworkAdapter ready (credentials: appId present, appPassword present)`);
+      logger.debug(` BotFrameworkAdapter initialized with direct app credentials`);
+      logger.debug(` BotFrameworkAdapter ready (credentials: appId present, appPassword present)`);
       this.authMethod = 'DirectCredentials';
 
     } catch (error) {
-      logger.error('❌ Error initializing BotFrameworkAdapter:', error.message);
+      logger.error(' Error initializing BotFrameworkAdapter:', error.message);
       throw new Error(`Cannot initialize BotFrameworkAdapter: ${error.message}`);
     }
 
@@ -51,25 +51,24 @@ class TeamsService {
       }
     };
 
-    logger.info(`✅ BotFrameworkAdapter fully initialized with ${this.authMethod}`);
+    logger.debug(` BotFrameworkAdapter fully initialized with ${this.authMethod}`);
 
-    // 🔍 DIAGNOSTIC LOGGING - Shows what credentials are being used
-    logger.info(`\n📋 ========== TEAMS BOT CREDENTIALS DIAGNOSTIC ==========`);
-    logger.info(`📌 Bot ID: ${this.botId}`);
-    logger.info(`📌 App ID (full): ${this.appId}`);
-    logger.info(`📌 App ID (masked): ${this.appId?.substring(0, 10)}...${this.appId?.substring(this.appId.length - 6)}`);
-    logger.info(`📌 App Password Present: ${!!this.appPassword ? 'YES ✅' : 'NO ❌'}`);
-    logger.info(`📌 App Password Length: ${this.appPassword?.length || 0} characters`);
-    logger.info(`📌 Tenant ID (full): ${this.microsoftAppTenantId}`);
-    logger.info(`📌 Tenant ID (masked): ${this.microsoftAppTenantId?.substring(0, 10)}...${this.microsoftAppTenantId?.substring(this.microsoftAppTenantId.length - 6)}`);
-    logger.info(`📌 Auth Method: ${this.authMethod}`);
-    logger.info(`📌 Adapter Type: ${this.adapter?.constructor?.name}`);
-    logger.info(`========================================================\n`);
+    // Diagnostic logging - credentials validation
+    logger.debug(`TEAMS BOT CREDENTIALS`);
+    logger.debug(`Bot ID: ${this.botId}`);
+    logger.debug(`App ID (full): ${this.appId}`);
+    logger.debug(`App ID (masked): ${this.appId?.substring(0, 10)}...${this.appId?.substring(this.appId.length - 6)}`);
+    logger.debug(`App Password Present: ${!!this.appPassword ? 'YES' : 'NO'}`);
+    logger.debug(`App Password Length: ${this.appPassword?.length || 0} characters`);
+    logger.debug(`Tenant ID (full): ${this.microsoftAppTenantId}`);
+    logger.debug(`Tenant ID (masked): ${this.microsoftAppTenantId?.substring(0, 10)}...${this.microsoftAppTenantId?.substring(this.microsoftAppTenantId.length - 6)}`);
+    logger.debug(`Auth Method: ${this.authMethod}`);
+    logger.debug(`Adapter Type: ${this.adapter?.constructor?.name}`);
 
     // Store for sending replies
     this.conversationRefs = new Map();
 
-    logger.info(`TeamsService initialized for ${this.botId}`);
+    logger.debug(`Service initialized for ${this.botId}`);
   }
 
   /**
@@ -114,7 +113,7 @@ class TeamsService {
       logger.info(`Conversation: ${activity?.conversation?.id}`);
       logger.info(`Context Activity ID: ${context?.activity?.id}`);
       logger.info(`Service URL (from context): ${context?.activity?.serviceUrl}`);
-      logger.info(`Service URL Valid Format: ${this.debugService?.validateServiceUrl(context?.activity?.serviceUrl) ? 'YES ✅' : 'NO ❌'}`);
+      logger.info(`Service URL Valid Format: ${this.debugService?.validateServiceUrl(context?.activity?.serviceUrl) ? 'YES ' : 'NO '}`);
       logger.info(`Service URL Region: ${this.debugService?.getServiceUrlFormat(context?.activity?.serviceUrl)}`);
       logger.info(`Adapter Type: ${this.adapter?.constructor?.name}`);
       logger.info(`Auth Method: ${this.authMethod}`);
@@ -136,7 +135,7 @@ class TeamsService {
         // Step 1: Get OAuth token using our manual TokenService
         logger.debug(`Getting OAuth token for outbound message...`);
         const token = await this.tokenService.getToken();
-        logger.debug(`✅ Token obtained`);
+        logger.debug(` Token obtained`);
 
         // Step 2: Prepare the API endpoint
         const serviceUrl = context.activity.serviceUrl;
@@ -164,14 +163,14 @@ class TeamsService {
           timeout: 10000
         });
 
-        logger.info(`✅ Adaptive Card sent successfully via direct API call. Response ID: ${response.data?.id}`);
+        logger.debug(` Adaptive Card sent successfully via direct API call. Response ID: ${response.data?.id}`);
         return { success: true };
       } catch (manualError) {
         logger.warn(`Manual API call failed, will throw error: ${manualError.message}`);
         throw manualError;
       }
     } catch (error) {
-      logger.error(`❌ Error sending Adaptive Card`, {
+      logger.error(` Error sending Adaptive Card`, {
         error: error.message,
         code: error.code,
         statusCode: error.statusCode,
@@ -182,7 +181,7 @@ class TeamsService {
 
       // Log more details for Teams authorization errors
       if (error.message?.includes('Authorization') || error.statusCode === 401) {
-        logger.error(`\n❌ ========== AUTHORIZATION ERROR (401) ==========`);
+        logger.error(`\n ========== AUTHORIZATION ERROR (401) ==========`);
         logger.error(`This means the bot cannot generate an OAuth token to send messages.`);
         logger.error(`\nVERIFICATION CHECKLIST:`);
         logger.error(`1. Is App ID correct in Azure Portal > App registrations?`);
@@ -275,13 +274,13 @@ class TeamsService {
     const result = await this.tokenService.getTokenWithDetails();
 
     if (result.success) {
-      logger.info(`✅ Token generation SUCCESSFUL`);
+      logger.debug(` Token generation SUCCESSFUL`);
       logger.info(`This means your credentials are valid and working.`);
       logger.info(`If you're still getting HTTP 401 errors, the issue is likely:`);
       logger.info(`  1. Service URL format (should be cleaned by activityController)`);
       logger.info(`  2. Adapter configuration issue`);
     } else {
-      logger.error(`❌ Token generation FAILED`);
+      logger.error(` Token generation FAILED`);
       logger.error(`Your credentials are not valid. Error: ${result.error}`);
       logger.error(`Steps to fix:`);
       logger.error(`  1. Check App ID in Azure Portal > App registrations`);
@@ -310,11 +309,11 @@ class TeamsService {
     );
 
     if (result.success) {
-      logger.info(`✅ Direct message send SUCCESSFUL`);
+      logger.debug(` Direct message send SUCCESSFUL`);
       logger.info(`This proves your credentials and service URL are valid.`);
       logger.info(`If BotFrameworkAdapter still fails, the issue is in adapter config.`);
     } else {
-      logger.error(`❌ Direct message send FAILED`);
+      logger.error(` Direct message send FAILED`);
       logger.error(`Issue: HTTP ${result.status} - ${result.error}`);
       if (result.status === 401) {
         logger.error(`Even though token generation works, Teams API rejected the request.`);

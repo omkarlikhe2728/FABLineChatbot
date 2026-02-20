@@ -89,7 +89,7 @@ class TelegramDialogManager {
           logger.warn(`Unknown state: ${currentState}`);
           result.messages = [{
             type: 'text',
-            text: '❌ *Unknown State*\n\nPlease type /start to restart.'
+            text: ' *Unknown State*\n\nPlease type /start to restart.'
           }];
       }
 
@@ -257,7 +257,7 @@ class TelegramDialogManager {
       if (!cardsResult.success || !cardsResult.data || cardsResult.data.length === 0) {
         result.messages = [{
           type: 'text',
-          text: '❌ *No Cards Found*\n\nNo cards found for this phone number.'
+          text: ' *No Cards Found*\n\nNo cards found for this phone number.'
         }];
         result.newDialogState = 'GET_PHONE_FOR_CARDS';
         return result;
@@ -503,7 +503,7 @@ class TelegramDialogManager {
 
       result.messages = [{
         type: 'text',
-        text: '✅ *Message Sent*\n\nYour message has been sent to the support team.'
+        text: ' *Message Sent*\n\nYour message has been sent to the support team.'
       }];
       result.newDialogState = 'LIVE_CHAT_ACTIVE';
 

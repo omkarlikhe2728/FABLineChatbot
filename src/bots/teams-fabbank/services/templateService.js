@@ -4,7 +4,7 @@ class TemplateService {
   constructor(config) {
     this.config = config;
     this.botName = config.botName;
-    logger.info(`TemplateService initialized`);
+    logger.debug(`Service initialized`);
   }
 
   /**
@@ -64,7 +64,7 @@ class TemplateService {
         },
         {
           "type": "Action.Submit",
-          "title": "❌ End Session",
+          "title": " End Session",
           "data": { "action": "end_session" }
         }
       ]
@@ -207,7 +207,7 @@ class TemplateService {
         "body": [
           {
             "type": "TextBlock",
-            "text": "❌ No Cards",
+            "text": " No Cards",
             "size": "large",
             "weight": "bolder",
             "color": "attention"
@@ -316,12 +316,12 @@ class TemplateService {
       "actions": [
         {
           "type": "Action.Submit",
-          "title": "✅ Yes",
+          "title": " Yes",
           "data": { "action": "confirm_yes" }
         },
         {
           "type": "Action.Submit",
-          "title": "❌ No",
+          "title": " No",
           "data": { "action": "confirm_no" }
         }
       ]
@@ -379,7 +379,7 @@ class TemplateService {
       "body": [
         {
           "type": "TextBlock",
-          "text": `❌ ${title}`,
+          "text": ` ${title}`,
           "size": "large",
           "color": "attention",
           "weight": "bolder"
@@ -405,7 +405,7 @@ class TemplateService {
       "body": [
         {
           "type": "TextBlock",
-          "text": `✅ ${title}`,
+          "text": ` ${title}`,
           "size": "large",
           "color": "good",
           "weight": "bolder"
@@ -464,7 +464,7 @@ class TemplateService {
       "body": [
         {
           "type": "TextBlock",
-          "text": "✅ Chat Ended",
+          "text": " Chat Ended",
           "size": "large",
           "color": "good",
           "weight": "bolder"

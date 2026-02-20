@@ -12,7 +12,7 @@ class ItSupportService {
       headers: { 'Content-Type': 'application/json' }
     });
 
-    logger.info(`ItSupportService initialized`);
+    logger.debug(`Service initialized`);
     logger.info(`Backend API URL: ${this.baseUrl}`);
   }
 

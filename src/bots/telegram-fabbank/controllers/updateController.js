@@ -81,14 +81,14 @@ class UpdateController {
         // Unsupported message type
         await this.telegramService.sendMessage(
           chatId,
-          '❌ *Unsupported Message Type*\n\nPlease send text or use the menu buttons.'
+          ' *Unsupported Message Type*\n\nPlease send text or use the menu buttons.'
         );
       }
     } catch (error) {
       logger.error(`Error handling message for ${chatId}:`, error);
       await this.telegramService.sendMessage(
         chatId,
-        '❌ *Error*\n\nAn error occurred. Please try again or type /menu to return to the main menu.'
+        ' *Error*\n\nAn error occurred. Please try again or type /menu to return to the main menu.'
       );
     }
   }
@@ -120,7 +120,7 @@ class UpdateController {
       logger.error(`Error handling callback query for ${chatId}:`, error);
       await this.telegramService.sendMessage(
         chatId,
-        '❌ *Error*\n\nAn error occurred while processing your request.'
+        ' *Error*\n\nAn error occurred while processing your request.'
       );
     }
   }

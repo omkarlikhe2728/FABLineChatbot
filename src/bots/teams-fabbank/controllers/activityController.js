@@ -23,7 +23,7 @@ class ActivityController {
             logger.warn(`   Original: ${activity.serviceUrl}`);
             logger.warn(`   Cleaned:  ${cleanedUrl}`);
             activity.serviceUrl = cleanedUrl;
-            logger.info(`✅ Service URL sanitized successfully`);
+            logger.debug(` Service URL sanitized successfully`);
           }
         }
       }

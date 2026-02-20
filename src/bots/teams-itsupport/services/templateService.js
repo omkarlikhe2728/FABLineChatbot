@@ -4,7 +4,7 @@ class TemplateService {
   constructor(config) {
     this.config = config;
     this.botName = config.botName;
-    logger.info(`TemplateService initialized`);
+    logger.debug(`Service initialized`);
   }
 
   /**
@@ -64,7 +64,7 @@ class TemplateService {
         },
         {
           "type": "Action.Submit",
-          "title": "❌ End Session",
+          "title": " End Session",
           "data": { "action": "end_session" }
         }
       ]
@@ -238,7 +238,7 @@ class TemplateService {
       "actions": [
         {
           "type": "Action.Submit",
-          "title": "✅ Submit Ticket",
+          "title": " Submit Ticket",
           "data": { "action": "confirm_ticket", "issueType": issueType, "description": description }
         },
         {
@@ -274,7 +274,7 @@ class TemplateService {
           "items": [
             {
               "type": "TextBlock",
-              "text": "✅ Ticket Created Successfully",
+              "text": " Ticket Created Successfully",
               "size": "large",
               "weight": "bolder",
               "color": "light"
@@ -510,7 +510,7 @@ class TemplateService {
           "items": [
             {
               "type": "TextBlock",
-              "text": `❌ ${title}`,
+              "text": ` ${title}`,
               "size": "large",
               "weight": "bolder",
               "color": "light"

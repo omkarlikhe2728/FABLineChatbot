@@ -68,7 +68,7 @@ class MessageHandler {
         // Not in live chat, inform user
         await this.telegramService.sendMessage(
           chatId,
-          '❌ *Cannot Send Media*\n\nMedia can only be sent during live chat.\n\nType /menu to return to main menu.'
+          ' *Cannot Send Media*\n\nMedia can only be sent during live chat.\n\nType /menu to return to main menu.'
         );
       }
     } catch (error) {
@@ -128,7 +128,7 @@ class MessageHandler {
       // Confirm to user
       await this.telegramService.sendMessage(
         chatId,
-        `✅ *Media Sent*\n\nYour ${mediaType} has been sent to the support team.`
+        ` *Media Sent*\n\nYour ${mediaType} has been sent to the support team.`
       );
     } catch (error) {
       logger.error(`Error forwarding ${mediaType} to live chat:`, error);

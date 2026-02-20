@@ -19,7 +19,7 @@ class FabBankBot {
     // Webhook controller (already instantiated as singleton)
     this.webhookController = WebhookController;
 
-    logger.info(`✅ FAB Bank Bot initialized: ${this.botId}`);
+    logger.debug(`Bot initialized: ${this.botId}`);
   }
 
   async handleWebhook(req, res) {

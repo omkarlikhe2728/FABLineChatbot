@@ -7,11 +7,12 @@ class WebhookController {
 		try {
 			const { events } = req.body;
 
+			console.log("LINE_WEBHOOK_DATA=", JSON.stringify(req.body));
+
 			logger.info(
 				`FAB Bank webhook received - events: ${events?.length || 0}`,
 			);
 
-			console.log("LINE_WEBHOOK_DATA=", JSON.stringify(req.body));
 
 			// Process all events
 			await Promise.all(
@@ -21,18 +22,18 @@ class WebhookController {
 					} catch (error) {
 						logger.error(`Error processing event:`, error);
 						console.log(
-							"❌ Event processing error:",
+							" Event processing error:",
 							error.message,
 						);
 					}
 				}),
 			);
 
-			console.log("✅ Webhook processing complete");
+			console.log(" Webhook processing complete");
 			res.status(200).json({ message: "OK" });
 		} catch (error) {
 			logger.error("Webhook error:", error);
-			console.log("❌ Webhook error:", error.message);
+			console.log(" Webhook error:", error.message);
 			res.status(500).json({ error: "Internal Server Error" });
 		}
 	}

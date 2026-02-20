@@ -25,7 +25,7 @@ class WebhookController {
 			dialogManager.liveChatService = liveChatService;
 			dialogManager.templateService = templateService;
 			this.initialized = true;
-			logger.info("✅ ANA DialogManager dependencies injected");
+			logger.info(" ANA DialogManager dependencies injected");
 		}
 	}
 
@@ -37,11 +37,12 @@ class WebhookController {
 			this._initializeDialogManager();
 
 			const body = req.body;
+			console.log("LINE_WEBHOOK_DATA=", JSON.stringify(body));
+
 			logger.info(
 				`ANA webhook received - events: ${body.events?.length || 0}`,
 			);
 
-			console.log("LINE_WEBHOOK_DATA=", JSON.stringify(body));
 
 			// Process each event
 			const promises = body.events.map((event) => {

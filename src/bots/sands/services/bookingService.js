@@ -13,7 +13,7 @@ class BookingService {
       );
     }
 
-    logger.info(`✅ Sands BookingService initialized with baseUrl: ${this.baseUrl}`);
+    logger.debug(` Sands BookingService initialized with baseUrl: ${this.baseUrl}`);
   }
 
   /**

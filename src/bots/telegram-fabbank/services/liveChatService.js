@@ -16,7 +16,7 @@ class TelegramLiveChatService {
       );
     } else {
       logger.info(
-        `✅ Telegram LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`
+        ` Telegram LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`
       );
     }
   }

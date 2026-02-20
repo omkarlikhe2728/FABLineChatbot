@@ -18,7 +18,7 @@ class LiveChatService {
 			);
 		} else {
 			logger.info(
-				`✅ ANA LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`,
+				` ANA LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`,
 			);
 		}
 	}

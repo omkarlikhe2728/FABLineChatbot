@@ -4,7 +4,7 @@ class TemplateService {
   constructor(config = {}) {
     this.hotelImageUrl = config.hotelImageUrl || process.env.SANDS_IMAGE_URL;
     this.hotelName = config.hotelName || process.env.SANDS_NAME || 'Sands Hotel Macau';
-    logger.info(`✅ Sands TemplateService initialized`);
+    logger.debug(` Sands TemplateService initialized`);
   }
 
   /**
@@ -236,7 +236,7 @@ class TemplateService {
       altText: 'Confirm Request',
       template: {
         type: 'buttons',
-        text: 'Would you like to save this request? ✅',
+        text: 'Would you like to save this request? ',
         actions: [
           {
             type: 'postback',

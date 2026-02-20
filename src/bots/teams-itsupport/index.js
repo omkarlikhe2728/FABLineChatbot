@@ -35,7 +35,7 @@ class TeamsItSupportBot {
         this.templateService
       );
 
-      logger.info(`TeamsItSupportBot initialized successfully with config: ${this.config.botName}`);
+      logger.debug(`Bot initialized successfully with config: ${this.config.botName}`);
     } catch (error) {
       logger.error('Failed to initialize TeamsItSupportBot', error);
       throw error;
@@ -54,7 +54,7 @@ class TeamsItSupportBot {
         // Store the context for synchronous message sending
         this.lastContext = context;
 
-        // ✅ Service URL sanitization happens in activityController.processActivity()
+        //  Service URL sanitization happens in activityController.processActivity()
         // This is correct because:
         // 1. JWT validation already passed (using original service URL)
         // 2. We sanitize context for outbound API calls

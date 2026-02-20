@@ -24,23 +24,23 @@ async function initializeBots() {
       throw new Error('Invalid bots configuration: expected "bots" array');
     }
 
-    logger.info(`Found ${botsConfig.bots.length} bot(s) in configuration`);
+    logger.debug(`Found ${botsConfig.bots.length} bot(s) in configuration`);
 
     // Initialize each enabled bot
     for (const botConfig of botsConfig.bots) {
       if (!botConfig.enabled) {
-        logger.info(`Skipping disabled bot: ${botConfig.id}`);
+        logger.debug(`Skipping disabled bot: ${botConfig.id}`);
         continue;
       }
 
       try {
-        logger.info(`Initializing bot: ${botConfig.id}...`);
+        logger.debug(`Initializing bot: ${botConfig.id}`);
 
         // Load bot-specific .env file
         const envPath = path.join(__dirname, '..', botConfig.envFile);
         if (fs.existsSync(envPath)) {
           require('dotenv').config({ path: envPath });
-          logger.info(`Loaded environment from: ${botConfig.envFile}`);
+          logger.debug(`Loaded environment from: ${botConfig.envFile}`);
         } else {
           logger.warn(`Bot env file not found: ${botConfig.envFile}`);
         }
@@ -53,7 +53,7 @@ async function initializeBots() {
         // Register bot in registry
         BotRegistry.register(botConfig.id, botInstance);
 
-        logger.info(`✅ Bot ${botConfig.id} initialized and registered`);
+        logger.debug(`Bot ${botConfig.id} initialized and registered`);
       } catch (error) {
         logger.error(`Failed to initialize bot ${botConfig.id}:`, error);
         throw error;
@@ -75,20 +75,11 @@ async function startServer() {
 
     // Start Express server
     app.listen(PORT, () => {
-      logger.info(`\n${'='.repeat(50)}`);
-      logger.info(`Multi-Bot Platform listening on port ${PORT}`);
+      logger.info(`Multi-Bot Platform started on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);
       logger.info(`Active bots: ${activeBots.join(', ')}`);
-      logger.info(`Webhook endpoints:`);
-      activeBots.forEach((botId) => {
-        logger.info(`  - POST /webhook/${botId}`);
-      });
-      logger.info(`Health checks:`);
-      logger.info(`  - GET /health (all bots)`);
-      activeBots.forEach((botId) => {
-        logger.info(`  - GET /health/${botId}`);
-      });
-      logger.info(`${'='.repeat(50)}\n`);
+      logger.debug(`Webhook endpoints: POST /webhook/{botId}`);
+      logger.debug(`Health checks: GET /health or GET /health/{botId}`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

@@ -19,7 +19,7 @@ class TemplateService {
           },
           {
             type: 'postback',
-            label: '❌ Exit',
+            label: ' Exit',
             data: 'action=end_session',
           },
         ],
@@ -270,14 +270,14 @@ class TemplateService {
   getSuccessTemplate(title, message) {
     return {
       type: 'text',
-      text: `✅ ${title}\n\n${message}`,
+      text: ` ${title}\n\n${message}`,
     };
   }
 
   getErrorTemplate(title, message) {
     return {
       type: 'text',
-      text: `❌ ${title}\n\n${message}`,
+      text: ` ${title}\n\n${message}`,
     };
   }
 

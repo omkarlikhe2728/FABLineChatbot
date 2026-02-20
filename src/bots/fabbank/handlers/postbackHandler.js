@@ -13,7 +13,7 @@ class PostbackHandler {
       const params = new URLSearchParams(data);
       const action = params.get('action');
 
-      console.log('✅ Postback action parsed:', action);
+      console.log(' Postback action parsed:', action);
       logger.info(`Postback from ${userId}: action=${action}`);
 
       switch (action) {
@@ -81,7 +81,7 @@ class PostbackHandler {
     await lineService.replyMessage(replyToken, [
       {
         type: 'text',
-        text: '✅ You selected: Check Balance\n\nPlease enter your registered phone number (e.g., +919876543210 or 9876543210)',
+        text: ' You selected: Check Balance\n\nPlease enter your registered phone number (e.g., +919876543210 or 9876543210)',
       },
     ]);
   }
@@ -92,7 +92,7 @@ class PostbackHandler {
     await lineService.replyMessage(replyToken, [
       {
         type: 'text',
-        text: '✅ You selected: Card Services\n\nPlease enter your registered phone number to view your cards',
+        text: ' You selected: Card Services\n\nPlease enter your registered phone number to view your cards',
       },
     ]);
   }
@@ -103,7 +103,7 @@ class PostbackHandler {
     await lineService.replyMessage(replyToken, [
       {
         type: 'text',
-        text: '✅ You selected: Block Card\n\nEnter the Card ID to block:',
+        text: ' You selected: Block Card\n\nEnter the Card ID to block:',
       },
     ]);
   }
@@ -114,7 +114,7 @@ class PostbackHandler {
     await lineService.replyMessage(replyToken, [
       {
         type: 'text',
-        text: '✅ You selected: Unblock Card\n\nEnter the Card ID to unblock:',
+        text: ' You selected: Unblock Card\n\nEnter the Card ID to unblock:',
       },
     ]);
   }
@@ -125,7 +125,7 @@ class PostbackHandler {
     await lineService.replyMessage(replyToken, [
       {
         type: 'text',
-        text: '✅ You selected: Report Lost Card\n\nEnter the Card ID of your lost card:',
+        text: ' You selected: Report Lost Card\n\nEnter the Card ID of your lost card:',
       },
     ]);
   }
@@ -136,7 +136,7 @@ class PostbackHandler {
     await lineService.replyMessage(replyToken, [
       {
         type: 'text',
-        text: '✅ You selected: View Card Limits\n\nEnter the Card ID to view limits:',
+        text: ' You selected: View Card Limits\n\nEnter the Card ID to view limits:',
       },
     ]);
   }
@@ -147,7 +147,7 @@ class PostbackHandler {
     await lineService.replyMessage(replyToken, [
       {
         type: 'text',
-        text: '✅ Back to Main Menu',
+        text: ' Back to Main Menu',
       },
       {
         type: 'template',
@@ -190,7 +190,7 @@ class PostbackHandler {
     await lineService.replyMessage(replyToken, [
       {
         type: 'text',
-        text: '✅ You selected: End Session\n\nThank you for using FAB Bank! Have a great day! 👋',
+        text: ' You selected: End Session\n\nThank you for using FAB Bank! Have a great day! 👋',
       },
     ]);
 

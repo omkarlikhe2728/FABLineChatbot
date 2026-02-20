@@ -19,7 +19,7 @@ class LiveChatService {
 			);
 		} else {
 			logger.info(
-				`✅ FAB Bank LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`,
+				` FAB Bank LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`,
 			);
 		}
 	}

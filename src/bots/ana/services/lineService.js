@@ -16,7 +16,7 @@ class LineService {
       channelAccessToken: channelAccessToken,
     });
 
-    logger.info('✅ ANA LineService initialized');
+    logger.info(' ANA LineService initialized');
   }
 
   /**

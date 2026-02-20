@@ -60,7 +60,7 @@ class CallbackHandler {
           logger.warn(`Unknown callback action: ${action}`);
           await this.telegramService.sendMessage(
             chatId,
-            '❌ *Unknown Action*\n\nPlease try again.'
+            ' *Unknown Action*\n\nPlease try again.'
           );
       }
     } catch (error) {
@@ -108,7 +108,7 @@ class CallbackHandler {
         logger.error(`Failed to start live chat for ${chatId}: ${result.error}`);
         await this.telegramService.sendMessage(
           chatId,
-          '❌ *Live Chat Unavailable*\n\nCould not connect to live chat service. Please try again later.'
+          ' *Live Chat Unavailable*\n\nCould not connect to live chat service. Please try again later.'
         );
         return;
       }
@@ -125,7 +125,7 @@ class CallbackHandler {
       logger.error(`Error starting live chat for ${chatId}:`, error);
       await this.telegramService.sendMessage(
         chatId,
-        '❌ *Live Chat Unavailable*\n\nCould not connect to live chat service. Please try again later.'
+        ' *Live Chat Unavailable*\n\nCould not connect to live chat service. Please try again later.'
       );
     }
   }
@@ -152,7 +152,7 @@ class CallbackHandler {
       if (!session.attributes || !session.attributes.phone) {
         await this.telegramService.sendMessage(
           chatId,
-          '❌ *Session Error*\n\nPlease check balance first to view mini statement.'
+          ' *Session Error*\n\nPlease check balance first to view mini statement.'
         );
         return;
       }

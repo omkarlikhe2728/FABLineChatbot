@@ -14,7 +14,7 @@ class TokenService {
     this.tokenEndpoint = `https://login.microsoftonline.com/${this.tenantId}/oauth2/v2.0/token`;
     this.tokenCache = null;
     this.tokenExpiry = null;
-    logger.info(`TokenService initialized for ${this.appId.substring(0, 8)}...`);
+    logger.debug(`TokenService initialized for ${this.appId.substring(0, 8)}...`);
   }
 
   /**
@@ -58,7 +58,7 @@ class TokenService {
       this.tokenCache = token;
       this.tokenExpiry = Date.now() + (expiresIn * 1000) - 60000;
 
-      logger.info(`✅ Token generated successfully`);
+      logger.debug(` Token generated successfully`);
       logger.info(`📌 Token expires in: ${expiresIn} seconds`);
       logger.info(`📌 Token length: ${token.length} characters`);
       logger.info(`📌 First 50 chars: ${token.substring(0, 50)}...`);
@@ -66,7 +66,7 @@ class TokenService {
 
       return token;
     } catch (error) {
-      logger.error(`\n❌ ========== TOKEN GENERATION FAILED ==========`);
+      logger.error(`\n ========== TOKEN GENERATION FAILED ==========`);
 
       if (error.response) {
         // Server responded with error status
@@ -75,14 +75,14 @@ class TokenService {
         logger.error(`Error Description: ${error.response.data?.error_description || 'No description'}`);
 
         if (error.response.status === 400) {
-          logger.error(`\n❌ HTTP 400 - Bad Request`);
+          logger.error(`\n HTTP 400 - Bad Request`);
           logger.error(`Common causes:`);
           logger.error(`1. Invalid client_id (App ID) - doesn't exist in Azure`);
           logger.error(`2. Invalid client_secret (App Password) - expired or wrong`);
           logger.error(`3. Invalid grant_type - must be 'client_credentials'`);
           logger.error(`4. Tenant ID wrong - app not in this Azure AD tenant`);
         } else if (error.response.status === 401) {
-          logger.error(`\n❌ HTTP 401 - Unauthorized`);
+          logger.error(`\n HTTP 401 - Unauthorized`);
           logger.error(`Credentials are rejected by Microsoft Identity Platform`);
           logger.error(`Verify:`);
           logger.error(`- App ID matches Azure Portal exactly`);

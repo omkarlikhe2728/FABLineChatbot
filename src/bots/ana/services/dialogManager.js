@@ -7,7 +7,7 @@ class DialogManager {
     this.airlineService = config.airlineService;
     this.liveChatService = config.liveChatService;
     this.templateService = config.templateService;
-    logger.info('✅ ANA DialogManager initialized');
+    logger.info(' ANA DialogManager initialized');
   }
 
   /**

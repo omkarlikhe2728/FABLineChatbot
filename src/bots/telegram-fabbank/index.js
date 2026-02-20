@@ -19,7 +19,7 @@ class TelegramFabBankBot {
       this.botId
     );
 
-    logger.info(`✅ Telegram FAB Bank Bot initialized: ${this.botId}`);
+    logger.debug(`Bot initialized: ${this.botId}`);
   }
 
   async handleWebhook(req, res) {

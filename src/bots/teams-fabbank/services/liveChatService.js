@@ -13,8 +13,8 @@ class LiveChatService {
       headers: { 'Content-Type': 'application/json' }
     });
 
-    logger.info(`LiveChatService initialized for ${this.botId}`);
-    logger.info(`Middleware URL: ${this.baseUrl}, Tenant: ${this.tenantId}`);
+    logger.debug(`Service initialized for ${this.botId}`);
+    logger.debug(`Middleware URL: ${this.baseUrl}, Tenant: ${this.tenantId}`);
   }
 
   /**

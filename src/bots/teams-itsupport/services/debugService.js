@@ -22,7 +22,7 @@ class DebugService {
       // Step 1: Get token
       logger.info(`\nStep 1: Getting OAuth token...`);
       const token = await this.tokenService.getToken();
-      logger.info(`✅ Token obtained: ${token.substring(0, 50)}...`);
+      logger.debug(` Token obtained: ${token.substring(0, 50)}...`);
       logger.info(`   Length: ${token.length} characters`);
 
       // Step 2: Prepare API endpoint
@@ -61,7 +61,7 @@ class DebugService {
         timeout: 10000
       });
 
-      logger.info(`\n✅ ========== SUCCESS ==========`);
+      logger.info(`\n ========== SUCCESS ==========`);
       logger.info(`Message sent successfully to Teams API!`);
       logger.info(`Response status: ${response.status}`);
       logger.info(`Response ID: ${response.data?.id || 'unknown'}`);
@@ -73,7 +73,7 @@ class DebugService {
         data: response.data
       };
     } catch (error) {
-      logger.error(`\n❌ ========== API CALL FAILED ==========`);
+      logger.error(`\n ========== API CALL FAILED ==========`);
       logger.error(`Error when sending message to Teams API`);
 
       if (error.response) {
@@ -84,7 +84,7 @@ class DebugService {
 
         // Analyze the error
         if (error.response.status === 401) {
-          logger.error(`\n❌ Authorization Error (401)`);
+          logger.error(`\n Authorization Error (401)`);
           logger.error(`Even though token generation works, Teams API rejected it.`);
           logger.error(`\nPossible causes:`);
           logger.error(`1. Service URL format is wrong (should be like: https://smba.trafficmanager.net/in/)`);
@@ -93,10 +93,10 @@ class DebugService {
           logger.error(`4. Bot not registered in Teams Channel`);
           logger.error(`5. Token scope is wrong for this operation`);
         } else if (error.response.status === 400) {
-          logger.error(`\n❌ Bad Request (400)`);
+          logger.error(`\n Bad Request (400)`);
           logger.error(`Payload format or endpoint URL is incorrect.`);
         } else if (error.response.status === 404) {
-          logger.error(`\n❌ Not Found (404)`);
+          logger.error(`\n Not Found (404)`);
           logger.error(`Service URL or conversation ID doesn't exist.`);
         }
       } else if (error.request) {

@@ -7,7 +7,7 @@ class DialogManager {
     this.bookingService = config.bookingService;
     this.liveChatService = config.liveChatService;
     this.templateService = config.templateService;
-    logger.info('✅ Hotel DialogManager initialized');
+    logger.info(' Hotel DialogManager initialized');
   }
 
   /**
@@ -337,7 +337,7 @@ class DialogManager {
         const time = this.sessionService.getAttribute(userId, 'updateCheckInRequest');
         result = await this.bookingService.addSpecialRequest(bookingId, `Early Checkin: ${time}`);
         successMsg = result.success
-          ? `Early check-in request for ${time} has been saved. ✅`
+          ? `Early check-in request for ${time} has been saved. `
           : 'Sorry, could not save your request.';
         break;
       }
@@ -350,13 +350,13 @@ class DialogManager {
       case 'EXTRA_BED_CONFIRM': {
         const bed = this.sessionService.getAttribute(userId, 'extraBed');
         result = await this.bookingService.addSpecialRequest(bookingId, `Extra Bed: ${bed}`);
-        successMsg = result.success ? `Extra bed request has been saved. ✅` : 'Sorry, could not save your request.';
+        successMsg = result.success ? `Extra bed request has been saved. ` : 'Sorry, could not save your request.';
         break;
       }
       case 'AIRPORT_CONFIRM': {
         const time = this.sessionService.getAttribute(userId, 'updateCheckInRequest');
         result = await this.bookingService.addSpecialRequest(bookingId, `Airport Pickup: ${time}`);
-        successMsg = result.success ? `Airport pickup request for ${time} has been saved. ✅` : 'Sorry, could not save your request.';
+        successMsg = result.success ? `Airport pickup request for ${time} has been saved. ` : 'Sorry, could not save your request.';
         break;
       }
       default:

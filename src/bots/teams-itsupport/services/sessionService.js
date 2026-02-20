@@ -5,7 +5,7 @@ class SessionService {
   constructor(config) {
     this.botId = 'teams-itsupport';
     this.sessionTimeout = config.sessionTimeout;
-    logger.info(`SessionService initialized for ${this.botId} with timeout ${this.sessionTimeout}ms`);
+    logger.debug(`Service initialized for ${this.botId} with timeout ${this.sessionTimeout}ms`);
   }
 
   /**

@@ -4,7 +4,7 @@ class TemplateService {
   constructor(config = {}) {
     this.welcomeImage = config.welcomeImage || process.env.ANA_WELCOME_IMAGE || 'https://www.ana.co.jp/www2/wws_common/images/top/tc1/hero/hero_pc_2512_FlyOtaku-Kawaii.jpg';
     this.airlineName = config.airlineName || 'ANA (All Nippon Airways)';
-    logger.info(`✅ ANA TemplateService initialized`);
+    logger.debug(` ANA TemplateService initialized`);
   }
 
   /**
@@ -276,7 +276,7 @@ class TemplateService {
   invalidFlightNumberMessage() {
     return {
       type: 'text',
-      text: '❌ Invalid flight number format. Please enter a valid flight number (e.g., NH123)',
+      text: ' Invalid flight number format. Please enter a valid flight number (e.g., NH123)',
     };
   }
 
@@ -286,7 +286,7 @@ class TemplateService {
   invalidDateMessage() {
     return {
       type: 'text',
-      text: '❌ Invalid date format. Please use YYYY-MM-DD format (e.g., 2026-02-15)',
+      text: ' Invalid date format. Please use YYYY-MM-DD format (e.g., 2026-02-15)',
     };
   }
 
@@ -296,7 +296,7 @@ class TemplateService {
   apiErrorMessage(operation) {
     return {
       type: 'text',
-      text: `❌ Unable to ${operation} at the moment. Please try again later or contact support.`,
+      text: ` Unable to ${operation} at the moment. Please try again later or contact support.`,
     };
   }
 }

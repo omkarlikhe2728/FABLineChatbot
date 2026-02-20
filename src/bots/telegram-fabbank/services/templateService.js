@@ -2,7 +2,7 @@ const logger = require('../../../common/utils/logger');
 
 class TelegramTemplateService {
   constructor() {
-    logger.info('✅ Telegram Template Service initialized');
+    logger.info(' Telegram Template Service initialized');
   }
 
   getMainMenuKeyboard() {
@@ -14,7 +14,7 @@ class TelegramTemplateService {
         ],
         [
           { text: '💬 Live Chat', callback_data: 'action=live_chat' },
-          { text: '❌ End Session', callback_data: 'action=end_session' }
+          { text: ' End Session', callback_data: 'action=end_session' }
         ]
       ]
     };
@@ -45,8 +45,8 @@ class TelegramTemplateService {
     return {
       inline_keyboard: [
         [
-          { text: '✅ Confirm', callback_data: `action=${confirmAction}` },
-          { text: '❌ Cancel', callback_data: `action=${cancelAction}` }
+          { text: ' Confirm', callback_data: `action=${confirmAction}` },
+          { text: ' Cancel', callback_data: `action=${cancelAction}` }
         ]
       ]
     };
@@ -56,8 +56,8 @@ class TelegramTemplateService {
     return {
       inline_keyboard: [
         [
-          { text: '✅ Yes', callback_data: `action=${yesAction}` },
-          { text: '❌ No', callback_data: `action=${noAction}` }
+          { text: ' Yes', callback_data: `action=${yesAction}` },
+          { text: ' No', callback_data: `action=${noAction}` }
         ]
       ]
     };
@@ -77,7 +77,7 @@ class TelegramTemplateService {
 
   formatBalanceMessage(data) {
     if (!data) {
-      return '❌ Unable to retrieve balance information';
+      return ' Unable to retrieve balance information';
     }
 
     return (
@@ -91,12 +91,12 @@ class TelegramTemplateService {
 
   formatCardListMessage(cards) {
     if (!cards || cards.length === 0) {
-      return '❌ No cards found for this account';
+      return ' No cards found for this account';
     }
 
     let message = `💳 *Your Cards*\n\n`;
     cards.forEach((card, index) => {
-      const status = card.status === 'active' ? '✅' : '❌';
+      const status = card.status === 'active' ? '' : '';
       message += `${index + 1}. ${status} ${card.cardType || 'Card'}\n`;
       message += `   ID: \`${card.cardId || 'N/A'}\`\n`;
       message += `   Status: ${card.status || 'Unknown'}\n\n`;
@@ -123,7 +123,7 @@ class TelegramTemplateService {
 
   formatCardLimitsMessage(data) {
     if (!data) {
-      return '❌ Unable to retrieve card limits';
+      return ' Unable to retrieve card limits';
     }
 
     return (
@@ -140,11 +140,11 @@ class TelegramTemplateService {
   }
 
   formatErrorMessage(errorTitle, errorMessage) {
-    return `❌ *${errorTitle}*\n\n${errorMessage}`;
+    return ` *${errorTitle}*\n\n${errorMessage}`;
   }
 
   formatSuccessMessage(title, message) {
-    return `✅ *${title}*\n\n${message}`;
+    return ` *${title}*\n\n${message}`;
   }
 
   formatConfirmationMessage(title, details) {
@@ -173,19 +173,19 @@ class TelegramTemplateService {
   }
 
   formatOtpPrompt() {
-    return `✅ OTP sent to your registered phone number\n\nPlease enter the 6-digit OTP:`;
+    return ` OTP sent to your registered phone number\n\nPlease enter the 6-digit OTP:`;
   }
 
   formatInvalidPhoneError() {
-    return `❌ *Invalid Phone Number*\n\nPlease enter a valid phone number with country code\n(e.g., +919876543210)`;
+    return ` *Invalid Phone Number*\n\nPlease enter a valid phone number with country code\n(e.g., +919876543210)`;
   }
 
   formatInvalidOtpError() {
-    return `❌ *Invalid OTP*\n\nOTP must be 6 digits. Please try again.`;
+    return ` *Invalid OTP*\n\nOTP must be 6 digits. Please try again.`;
   }
 
   formatOtpExpiredError() {
-    return `❌ *OTP Expired*\n\nYour OTP has expired. Please request a new one.`;
+    return ` *OTP Expired*\n\nYour OTP has expired. Please request a new one.`;
   }
 
   formatSessionExpiredMessage() {

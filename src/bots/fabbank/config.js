@@ -15,7 +15,7 @@ class FabBankConfig extends BaseBotConfig {
       try {
         const configContent = fs.readFileSync(configPath, 'utf8');
         jsonConfig = JSON.parse(configContent);
-        logger.info(`Loaded FAB Bank config from ${configPath}`);
+        logger.debug(`LoadedPath}`);
       } catch (error) {
         logger.warn(`Failed to load config from ${configPath}:`, error.message);
       }
@@ -52,7 +52,7 @@ class FabBankConfig extends BaseBotConfig {
       logger.warn('FABBANK_BANKING_API_URL not set, some features may not work');
     }
 
-    logger.info(`FabBank config initialized: ${this.botId}`, {
+    logger.debug(`Config initialized: ${this.botId}`, {
       botName: this.botName,
       sessionTimeout: this.sessionTimeout,
       apiUrl: this.apiUrl ? 'configured' : 'not set',

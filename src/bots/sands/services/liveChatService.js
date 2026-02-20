@@ -20,7 +20,7 @@ class LiveChatService {
 		}
 
 		logger.info(
-			`✅ Sands LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`,
+			` Sands LiveChatService initialized with baseUrl: ${this.baseUrl}, botId: ${this.botId}, tenantId: ${this.tenantId}`,
 		);
 	}
 

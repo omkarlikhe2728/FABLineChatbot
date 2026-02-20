@@ -16,7 +16,7 @@ class LineService {
       channelAccessToken: channelAccessToken,
     });
 
-    logger.info('✅ Sands LineService initialized');
+    logger.info(' Sands LineService initialized');
   }
 
   /**

@@ -27,14 +27,14 @@ class CommandHandler {
         default:
           await this.telegramService.sendMessage(
             chatId,
-            `❌ *Unknown Command*\n\nCommand /${command} is not recognized.\n\nType /help for available commands.`
+            ` *Unknown Command*\n\nCommand /${command} is not recognized.\n\nType /help for available commands.`
           );
       }
     } catch (error) {
       logger.error(`Error handling command /${command} for ${chatId}:`, error);
       await this.telegramService.sendMessage(
         chatId,
-        '❌ *Error*\n\nAn error occurred while processing your command.'
+        ' *Error*\n\nAn error occurred while processing your command.'
       );
     }
   }
@@ -59,7 +59,7 @@ class CommandHandler {
             templateService.formatWelcomeMessage(),
             templateService.getMainMenuKeyboard()
           );
-          logger.info(`✅ Welcome image sent successfully to ${chatId}`);
+          logger.debug(` Welcome image sent successfully to ${chatId}`);
         } catch (photoError) {
           // Fallback to text if photo fails
           logger.warn(`⚠️ Could not send welcome photo: ${photoError.message}`);
@@ -85,7 +85,7 @@ class CommandHandler {
       logger.error(`Error in /start command for ${chatId}:`, error);
       await this.telegramService.sendMessage(
         chatId,
-        '❌ *Error*\n\nCould not start bot. Please try again.'
+        ' *Error*\n\nCould not start bot. Please try again.'
       );
     }
   }
@@ -112,7 +112,7 @@ class CommandHandler {
       logger.error(`Error in /menu command for ${chatId}:`, error);
       await this.telegramService.sendMessage(
         chatId,
-        '❌ *Error*\n\nCould not show menu. Please try again.'
+        ' *Error*\n\nCould not show menu. Please try again.'
       );
     }
   }
@@ -129,7 +129,7 @@ class CommandHandler {
         `💳 *Check Balance* - View your account balance and mini statement\n` +
         `💰 *Card Services* - Block/Unblock cards, report lost card, view limits\n` +
         `💬 *Live Chat* - Connect with our support team 24/7\n` +
-        `❌ *End Session* - Close your current session\n\n` +
+        ` *End Session* - Close your current session\n\n` +
         `*Authentication:*\n` +
         `We use OTP (One-Time Password) for secure access.\n` +
         `OTPs are valid for 5 minutes.\n\n` +
@@ -149,7 +149,7 @@ class CommandHandler {
       logger.error(`Error in /help command for ${chatId}:`, error);
       await this.telegramService.sendMessage(
         chatId,
-        '❌ *Error*\n\nCould not show help. Please try again.'
+        ' *Error*\n\nCould not show help. Please try again.'
       );
     }
   }

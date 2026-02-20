@@ -203,7 +203,7 @@ class DialogManager {
       messages: [
         {
           type: 'text',
-          text: `✅ OTP sent successfully!\nValid for ${otpResult.data.expiresInMinutes || 5} minutes.\n\nPlease enter the 6-digit OTP:`,
+          text: ` OTP sent successfully!\nValid for ${otpResult.data.expiresInMinutes || 5} minutes.\n\nPlease enter the 6-digit OTP:`,
         },
       ],
       newDialogState: 'VERIFY_OTP',
@@ -246,7 +246,7 @@ class DialogManager {
         messages: [
           {
             type: 'text',
-            text: '❌ Invalid OTP. Please try again.',
+            text: ' Invalid OTP. Please try again.',
           },
         ],
       };
@@ -451,7 +451,7 @@ class DialogManager {
       messages: [
         {
           type: 'text',
-          text: `✅ Card ${cardId} blocked successfully!`,
+          text: ` Card ${cardId} blocked successfully!`,
         },
         {
           type: 'template',
@@ -503,12 +503,12 @@ class DialogManager {
             actions: [
               {
                 type: 'postback',
-                label: '✅ Yes, Unblock',
+                label: ' Yes, Unblock',
                 data: `action=confirm_unblock&cardId=${cardId}`,
               },
               {
                 type: 'postback',
-                label: '❌ Cancel',
+                label: ' Cancel',
                 data: 'action=back_to_menu',
               },
             ],
@@ -551,7 +551,7 @@ class DialogManager {
       messages: [
         {
           type: 'text',
-          text: `✅ Card ${cardId} unblocked successfully!`,
+          text: ` Card ${cardId} unblocked successfully!`,
         },
         {
           type: 'template',
@@ -602,12 +602,12 @@ class DialogManager {
             actions: [
               {
                 type: 'postback',
-                label: '✅ Confirm',
+                label: ' Confirm',
                 data: `action=confirm_report_lost&cardId=${cardId}`,
               },
               {
                 type: 'postback',
-                label: '❌ Cancel',
+                label: ' Cancel',
                 data: 'action=back_to_menu',
               },
             ],
@@ -650,7 +650,7 @@ class DialogManager {
       messages: [
         {
           type: 'text',
-          text: `✅ Card ${cardId} reported as lost!\n\nYour card has been blocked immediately. You will receive a replacement card within 5-7 business days.`,
+          text: ` Card ${cardId} reported as lost!\n\nYour card has been blocked immediately. You will receive a replacement card within 5-7 business days.`,
         },
         {
           type: 'template',

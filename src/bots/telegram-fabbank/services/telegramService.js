@@ -5,7 +5,7 @@ class TelegramService {
   constructor(config) {
     this.config = config;
     this.bot = new Bot(config.botToken);
-    logger.info('✅ Telegram service initialized');
+    logger.info(' Telegram service initialized');
   }
 
   async sendMessage(chatId, text, options = {}) {

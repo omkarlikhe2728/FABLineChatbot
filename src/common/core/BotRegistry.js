@@ -10,7 +10,7 @@ class BotRegistry {
       throw new Error(`Bot ${botId} already registered`);
     }
     this.bots.set(botId, botInstance);
-    logger.info(`✅ Bot registered: ${botId}`);
+    logger.debug(`Bot registered: ${botId}`);
   }
 
   getBot(botId) {
