@@ -1,4 +1,6 @@
 const logger = require('../../common/utils/logger');
+const fs = require('fs');
+const path = require('path');
 
 class TeamsItSupportConfig {
   constructor() {
@@ -27,6 +29,16 @@ class TeamsItSupportConfig {
 
     // Welcome Message
     this.welcomeImage = process.env.TEAMS_ITSUPPORT_WELCOME_IMAGE || null;
+
+    // Load troubleshooting steps from config JSON file
+    try {
+      const configPath = path.join(__dirname, '../../..', 'config', 'teams-itsupport.json');
+      const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      this.troubleshootingSteps = configData.troubleshootingSteps || {};
+    } catch (error) {
+      logger.warn('Failed to load troubleshootingSteps from config file', error.message);
+      this.troubleshootingSteps = {};
+    }
 
     // Validation
     if (!this.appId || !this.appPassword) {

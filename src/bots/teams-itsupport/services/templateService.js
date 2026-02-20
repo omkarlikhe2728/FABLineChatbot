@@ -583,23 +583,19 @@ class TemplateService {
       "version": "1.5",
       "body": [
         {
-          "type": "Container",
-          "style": "attention",
-          "items": [
-            {
-              "type": "TextBlock",
-              "text": ` ${title}`,
-              "size": "large",
-              "weight": "bolder",
-              "color": "light"
-            }
-          ]
+          "type": "TextBlock",
+          "text": `⚠️ ${title}`,
+          "size": "large",
+          "weight": "bolder",
+          "color": "attention"
         },
         {
           "type": "TextBlock",
           "text": message,
           "wrap": true,
-          "spacing": "medium"
+          "spacing": "medium",
+          "size": "default",
+          "color": "dark"
         }
       ],
       "actions": [

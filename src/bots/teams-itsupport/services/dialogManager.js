@@ -210,8 +210,18 @@ class DialogManager {
 
   // ==================== COLLECT DESCRIPTION ====================
   async _handleCollectDescription(userId, text, actionData, attributes) {
-    const description = text?.trim();
+    const action = actionData?.action;
     const issueType = attributes?.issueType;
+
+    // Handle back to menu button
+    if (action === 'back_to_menu') {
+      return {
+        cards: [this.templateService.getMainMenuCard()],
+        newDialogState: 'MAIN_MENU'
+      };
+    }
+
+    const description = text?.trim();
 
     if (!description || description.length < 5) {
       return {
