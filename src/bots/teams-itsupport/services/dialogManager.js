@@ -25,6 +25,9 @@ class DialogManager {
         case 'SELECT_ISSUE_TYPE':
           result = await this._handleSelectIssueType(userId, text, actionData, attributes);
           break;
+        case 'TROUBLESHOOTING':
+          result = await this._handleTroubleshooting(userId, text, actionData, attributes);
+          break;
         case 'COLLECT_DESCRIPTION':
           result = await this._handleCollectDescription(userId, text, actionData, attributes);
           break;
@@ -64,12 +67,24 @@ class DialogManager {
   // ==================== MAIN MENU ====================
   async _handleMainMenu(userId, text, actionData, attributes) {
     const action = actionData?.action || text?.toLowerCase().trim();
+    const issueType = actionData?.issueType;
 
     switch (action) {
-      case 'submit_ticket':
+      case 'issue_type_selected':
+        // Issue type selected directly from main menu
+        if (issueType === 'network' || issueType === 'broadband') {
+          const steps = this.config.troubleshootingSteps?.[issueType] || [];
+          return {
+            cards: [this.templateService.getTroubleshootingCard(issueType, steps)],
+            newDialogState: 'TROUBLESHOOTING',
+            attributes: { issueType }
+          };
+        }
+        // agent_connectivity - go directly to description
         return {
-          cards: [this.templateService.getIssueTypeCard()],
-          newDialogState: 'SELECT_ISSUE_TYPE'
+          cards: [this.templateService.getDescriptionInputCard(issueType)],
+          newDialogState: 'COLLECT_DESCRIPTION',
+          attributes: { issueType }
         };
 
       case 'check_ticket_status':
@@ -78,8 +93,7 @@ class DialogManager {
           newDialogState: 'CHECK_TICKET_STATUS'
         };
 
-      case 'live_chat':
-        // Start live chat
+      case 'live_chat': {
         const chatResult = await this.liveChatService.startLiveChat(
           userId,
           'Teams User',
@@ -97,6 +111,7 @@ class DialogManager {
             newDialogState: 'MAIN_MENU'
           };
         }
+      }
 
       case 'end_session':
         return {
@@ -118,6 +133,17 @@ class DialogManager {
     const issueType = actionData?.issueType;
 
     if (action === 'issue_type_selected' && issueType) {
+      // For network and broadband issues, show troubleshooting first
+      if (issueType === 'network' || issueType === 'broadband') {
+        const steps = this.config.troubleshootingSteps?.[issueType] || [];
+        return {
+          cards: [this.templateService.getTroubleshootingCard(issueType, steps)],
+          newDialogState: 'TROUBLESHOOTING',
+          attributes: { issueType }
+        };
+      }
+
+      // For agent_connectivity, go directly to description
       return {
         cards: [this.templateService.getDescriptionInputCard(issueType)],
         newDialogState: 'COLLECT_DESCRIPTION',
@@ -136,6 +162,49 @@ class DialogManager {
     return {
       cards: [this.templateService.getIssueTypeCard()],
       newDialogState: 'SELECT_ISSUE_TYPE'
+    };
+  }
+
+  // ==================== TROUBLESHOOTING ====================
+  async _handleTroubleshooting(userId, text, actionData, attributes) {
+    const action = actionData?.action;
+    const issueType = attributes?.issueType;
+
+    if (action === 'troubleshoot_resolved') {
+      // Issue fixed by troubleshooting steps - no ticket needed
+      return {
+        cards: [
+          this.templateService.getTextCard(
+            '✅ Great! Issue Resolved',
+            'Glad the troubleshooting steps helped. If the issue returns, feel free to submit a ticket.'
+          ),
+          this.templateService.getMainMenuCard()
+        ],
+        newDialogState: 'MAIN_MENU'
+      };
+    }
+
+    if (action === 'troubleshoot_failed') {
+      // Troubleshooting didn't help - proceed to ticket submission
+      return {
+        cards: [this.templateService.getDescriptionInputCard(issueType)],
+        newDialogState: 'COLLECT_DESCRIPTION',
+        attributes: { issueType }
+      };
+    }
+
+    if (action === 'back_to_menu') {
+      return {
+        cards: [this.templateService.getMainMenuCard()],
+        newDialogState: 'MAIN_MENU'
+      };
+    }
+
+    // Re-show troubleshooting card for any unexpected input
+    const steps = this.config.troubleshootingSteps?.[issueType] || [];
+    return {
+      cards: [this.templateService.getTroubleshootingCard(issueType, steps)],
+      newDialogState: 'TROUBLESHOOTING'
     };
   }
 

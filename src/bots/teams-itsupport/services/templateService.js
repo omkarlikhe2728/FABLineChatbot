@@ -41,6 +41,15 @@ class TemplateService {
       }
     );
 
+    // Add subtitle for issue selection
+    body.push({
+      "type": "TextBlock",
+      "text": "Select the type of issue you're experiencing, or check an existing ticket.",
+      "wrap": true,
+      "spacing": "medium",
+      "size": "default"
+    });
+
     return {
       "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
       "type": "AdaptiveCard",
@@ -49,8 +58,18 @@ class TemplateService {
       "actions": [
         {
           "type": "Action.Submit",
-          "title": "🎫 Submit Ticket",
-          "data": { "action": "submit_ticket" }
+          "title": "🌐 Network Issue",
+          "data": { "action": "issue_type_selected", "issueType": "network" }
+        },
+        {
+          "type": "Action.Submit",
+          "title": "📡 Broadband Issue",
+          "data": { "action": "issue_type_selected", "issueType": "broadband" }
+        },
+        {
+          "type": "Action.Submit",
+          "title": "⚠️ Agent Connectivity Issue",
+          "data": { "action": "issue_type_selected", "issueType": "agent_connectivity" }
         },
         {
           "type": "Action.Submit",
@@ -64,7 +83,7 @@ class TemplateService {
         },
         {
           "type": "Action.Submit",
-          "title": " End Session",
+          "title": "❌ End Session",
           "data": { "action": "end_session" }
         }
       ]
@@ -125,6 +144,72 @@ class TemplateService {
           "type": "Action.Submit",
           "title": "⚠️ Agent Connectivity",
           "data": { "action": "issue_type_selected", "issueType": "agent_connectivity" }
+        },
+        {
+          "type": "Action.Submit",
+          "title": "⬅️ Back to Menu",
+          "data": { "action": "back_to_menu" }
+        }
+      ]
+    };
+  }
+
+  /**
+   * Troubleshooting steps card (for network and broadband issues)
+   */
+  getTroubleshootingCard(issueType, steps) {
+    const issueLabels = {
+      'network': 'Network Issue',
+      'broadband': 'Broadband Issue'
+    };
+
+    const stepsItems = steps.map((step, index) => ({
+      "name": `Step ${index + 1}`,
+      "value": step
+    }));
+
+    return {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": [
+        {
+          "type": "TextBlock",
+          "text": "🔧 Let's Troubleshoot First",
+          "size": "large",
+          "weight": "bolder"
+        },
+        {
+          "type": "TextBlock",
+          "text": `Before we submit a ticket, let's try these quick steps to resolve your ${issueLabels[issueType]}.`,
+          "wrap": true,
+          "spacing": "medium",
+          "size": "default"
+        },
+        {
+          "type": "FactSet",
+          "facts": stepsItems,
+          "spacing": "medium"
+        },
+        {
+          "type": "TextBlock",
+          "text": "Did these steps resolve your issue?",
+          "wrap": true,
+          "spacing": "medium",
+          "size": "medium",
+          "weight": "bolder"
+        }
+      ],
+      "actions": [
+        {
+          "type": "Action.Submit",
+          "title": "✅ Issue Resolved",
+          "data": { "action": "troubleshoot_resolved", "issueType": issueType }
+        },
+        {
+          "type": "Action.Submit",
+          "title": "❌ Still Not Resolved - Submit Ticket",
+          "data": { "action": "troubleshoot_failed", "issueType": issueType }
         },
         {
           "type": "Action.Submit",
@@ -363,13 +448,6 @@ class TemplateService {
     if (!data || !data.ticketId) {
       return this.getErrorCard('Error', 'Unable to display ticket status');
     }
-
-    const statusColors = {
-      'OPEN': 'warning',
-      'IN_PROGRESS': 'accent',
-      'RESOLVED': 'good',
-      'CLOSED': 'light'
-    };
 
     return {
       "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",

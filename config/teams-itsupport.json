@@ -10,8 +10,19 @@
   "menu": {
     "buttons": [
       {
-        "label": "🎫 Submit Ticket",
-        "action": "submit_ticket"
+        "label": "🌐 Network Issue",
+        "action": "issue_type_selected",
+        "issueType": "network"
+      },
+      {
+        "label": "📡 Broadband Issue",
+        "action": "issue_type_selected",
+        "issueType": "broadband"
+      },
+      {
+        "label": "⚠️ Agent Connectivity Issue",
+        "action": "issue_type_selected",
+        "issueType": "agent_connectivity"
       },
       {
         "label": "🔍 Check Ticket Status",
@@ -53,6 +64,22 @@
       "etaLabel": "30 minutes"
     }
   ],
+  "troubleshootingSteps": {
+    "network": [
+      "Check if WiFi icon is visible in your system tray and connected",
+      "Disable and re-enable your WiFi adapter (Device Manager → Network Adapters)",
+      "Forget the WiFi network and reconnect with your password",
+      "Run Windows Network Diagnostics (right-click WiFi icon → Troubleshoot problems)",
+      "Restart your router or access point (unplug for 30 seconds)"
+    ],
+    "broadband": [
+      "Test your speed at fast.com or speedtest.net and note the result",
+      "Restart your router (unplug power for 30 seconds, then plug back in)",
+      "Check if other devices on the same network have the same issue",
+      "Inspect all cable connections (from wall socket to router)",
+      "Check your ISP's website or call them to check for service outages in your area"
+    ]
+  },
   "sessionTimeout": 300000,
   "otpExpiry": 300,
   "commands": [
