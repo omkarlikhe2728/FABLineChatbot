@@ -1,13 +1,32 @@
-# FAB Bank Multi-Platform Banking Bots 🏦
+# FABLineChatbot - Multi-Platform Bot Framework 🤖
 
-A complete multi-platform chatbot implementation for FAB Bank providing real-time banking services across **LINE** and **Telegram** with OTP authentication, balance inquiry, card management, live chat, and transaction history.
+A complete multi-platform chatbot framework supporting **LINE**, **Microsoft Teams**, and **Telegram** with banking services, hotel concierge, airline reservations, and IT support solutions.
 
-## 🌐 Supported Platforms
+## 📚 Documentation
 
-- **LINE Messaging API** - [Setup Guide](./README.md)
-- **Telegram Bot API** - [Setup Guide](./TELEGRAM_BOT_README.md)
-- **Sands Hotel Bot** (LINE) - Concierge services
-- **ANA Airline Bot** (LINE) - Reservation services
+**All documentation has been moved to the `docs/` folder!**
+
+👉 **[Start here: docs/README.md](./docs/README.md)** - Complete documentation index
+
+### Quick Links
+- 🚀 [Quick Start Guide](./docs/QUICK_START_GUIDE.md) - Launch in 5 minutes
+- 📖 [Implementation Summary](./docs/IMPLEMENTATION_SUMMARY.md) - Project overview
+- 🔍 [Quick Reference](./docs/QUICK_REFERENCE.md) - Common commands and APIs
+- 🧪 [Testing Guide](./docs/TESTING_GUIDE.md) - Test all bots
+
+## 🌐 Supported Platforms & Bots
+
+### LINE Messaging API
+- **FAB Bank** - Banking services (balance, cards, transactions)
+- **Sands Hotel** - Hotel concierge services
+- **ANA Airline** - Airline reservation services
+
+### Microsoft Teams
+- **FAB Bank Bot** - Banking services for Teams
+- **IT Support Bot** - IT support ticketing system
+
+### Telegram
+- **FAB Bank Bot** - Banking services for Telegram
 
 ## ✨ Features
 
