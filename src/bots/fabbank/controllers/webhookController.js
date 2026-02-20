@@ -6,6 +6,7 @@ class WebhookController {
 	async handleWebhook(req, res) {
 		try {
 			const { events } = req.body;
+			const body = req.body;
 
 			logger.info(
 				`FAB Bank webhook received - events: ${events?.length || 0}`,
@@ -13,23 +14,33 @@ class WebhookController {
 
 			console.log("LINE_WEBHOOK_DATA=", JSON.stringify(req.body));
 
-			// Process all events
-			await Promise.all(
-				events.map(async (event) => {
-					try {
-						await this.processEvent(event);
-					} catch (error) {
-						logger.error(`Error processing event:`, error);
-						console.log(
-							"❌ Event processing error:",
-							error.message,
-						);
-					}
-				}),
-			);
+			
+			// Process each event
+			const promises = body.events.map((event) => {
+				if (event.deliveryContext?.isRedelivery) return;
+				return this._processEvent(event);
+			});
+			await Promise.all(promises);
 
-			console.log("✅ Webhook processing complete");
-			res.status(200).json({ message: "OK" });
+			res.json({ message: "ok" });
+
+			// Process all events
+			// await Promise.all(
+			// 	events.map(async (event) => {
+			// 		try {
+			// 			await this.processEvent(event);
+			// 		} catch (error) {
+			// 			logger.error(`Error processing event:`, error);
+			// 			console.log(
+			// 				"❌ Event processing error:",
+			// 				error.message,
+			// 			);
+			// 		}
+			// 	}),
+			// );
+
+			// console.log("✅ Webhook processing complete");
+			// res.status(200).json({ message: "OK" });
 		} catch (error) {
 			logger.error("Webhook error:", error);
 			console.log("❌ Webhook error:", error.message);
