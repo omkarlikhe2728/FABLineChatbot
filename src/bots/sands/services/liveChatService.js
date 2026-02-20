@@ -190,8 +190,8 @@ class LiveChatService {
 const defaultConfig = {
 	baseUrl: process.env.SANDS_LIVE_CHAT_API_URL,
 	botId: "sands",
-	// tenantId: "",
-	tenantId: "showmeavaya",
+	tenantId: "infci",
+	// tenantId: "showmeavaya",
 };
 const defaultInstance = new LiveChatService(defaultConfig);
 

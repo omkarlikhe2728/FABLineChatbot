@@ -212,8 +212,8 @@ class LiveChatService {
 const defaultConfig = {
 	baseUrl: process.env.ANA_LIVE_CHAT_API_URL,
 	botId: "ana",
-	// tenantId: "ana",
-	tenantId: "showmeavaya",
+	tenantId: "ana",
+	// tenantId: "showmeavaya",
 };
 const defaultInstance = new LiveChatService(defaultConfig);
 
