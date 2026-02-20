@@ -8,7 +8,7 @@ class LiveChatService {
 		this.baseUrl = config.baseUrl || process.env.FABBANK_LIVE_CHAT_API_URL;
 		this.timeout = config.timeout || 20000;
 		this.botId = config.botId || "fabbank";
-		this.tenantId = config.tenantId || "showmeavaya";
+		this.tenantId = config.tenantId || "";
 
 		this.lineService = lineService;
 
@@ -214,6 +214,7 @@ const defaultConfig = {
 	baseUrl: process.env.FABBANK_LIVE_CHAT_API_URL,
 	botId: "fabbank",
 	tenantId: "showmeavaya",
+	// tenantId: "",
 };
 const defaultInstance = new LiveChatService(defaultConfig);
 

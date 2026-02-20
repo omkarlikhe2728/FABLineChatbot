@@ -197,7 +197,7 @@ class TelegramLiveChatService {
 const defaultConfig = {
   baseUrl: process.env.TELEGRAM_FABBANK_LIVE_CHAT_API_URL,
   botId: 'telegram-fabbank',
-  tenantId: 'telegram-fabbank',
+  tenantId: 'showmeavaya',
   timeout: parseInt(process.env.TELEGRAM_FABBANK_LIVE_CHAT_TIMEOUT || '20000'),
 };
 const defaultInstance = new TelegramLiveChatService(defaultConfig);

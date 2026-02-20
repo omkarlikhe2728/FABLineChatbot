@@ -8,7 +8,7 @@ class LiveChatService {
 		this.baseUrl = config.baseUrl || process.env.ANA_LIVE_CHAT_API_URL;
 		this.timeout = config.timeout || 20000;
 		this.botId = config.botId || "ana";
-		this.tenantId = config.tenantId || "ana";
+		this.tenantId = config.tenantId || "";
 
 		this.lineService = lineService;
 
@@ -212,7 +212,8 @@ class LiveChatService {
 const defaultConfig = {
 	baseUrl: process.env.ANA_LIVE_CHAT_API_URL,
 	botId: "ana",
-	tenantId: "ana",
+	// tenantId: "ana",
+	tenantId: "showmeavaya",
 };
 const defaultInstance = new LiveChatService(defaultConfig);
 

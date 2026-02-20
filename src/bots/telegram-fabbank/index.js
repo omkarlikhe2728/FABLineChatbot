@@ -1,12 +1,12 @@
-const TelegramFabBankConfig = require('./config');
-const TelegramService = require('./services/telegramService');
-const SessionService = require('./services/sessionService');
-const UpdateController = require('./controllers/updateController');
-const logger = require('../../common/utils/logger');
+const TelegramFabBankConfig = require("./config");
+const TelegramService = require("./services/telegramService");
+const SessionService = require("./services/sessionService");
+const UpdateController = require("./controllers/updateController");
+const logger = require("../../common/utils/logger");
 
 class TelegramFabBankBot {
   constructor() {
-    this.botId = 'telegram-fabbank';
+    this.botId = "telegram-fabbank";
     this.config = new TelegramFabBankConfig();
 
     // Initialize services
@@ -26,8 +26,10 @@ class TelegramFabBankBot {
     try {
       const update = req.body;
 
+      console.log("telegram_webhook_data= ", update);
+
       if (!update) {
-        return res.status(400).json({ error: 'Invalid update' });
+        return res.status(400).json({ error: "Invalid update" });
       }
 
       // Process update
@@ -36,8 +38,8 @@ class TelegramFabBankBot {
       // Send response
       res.status(200).json({ ok: true });
     } catch (error) {
-      logger.error('Telegram webhook error:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      logger.error("Telegram webhook error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
