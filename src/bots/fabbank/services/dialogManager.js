@@ -95,7 +95,7 @@ class DialogManager {
         messages: [
           {
             type: 'text',
-            text: '💳 Starting Balance Check...\n\nPlease enter your phone number (e.g., 9876543210 or +919876543210)',
+            text: '💳 Starting Balance Check...\n\nPlease enter your phone number with country code (e.g., 6596542183 for Singapore, 919890903580 for India)',
           },
         ],
         newDialogState: 'CHECK_BALANCE',
@@ -179,7 +179,7 @@ class DialogManager {
         messages: [
           {
             type: 'text',
-            text: 'Invalid phone format. Please use: +919876543210 or 9876543210',
+            text: 'Invalid phone format. Please enter your phone number with country code (e.g., 6596542183 for Singapore, 919890903580 for India)',
           },
         ],
       };
@@ -316,7 +316,7 @@ class DialogManager {
         messages: [
           {
             type: 'text',
-            text: 'Invalid phone format. Please use: +919876543210 or 9876543210',
+            text: 'Invalid phone format. Please enter your phone number with country code (e.g., 6596542183 for Singapore, 919890903580 for India)',
           },
         ],
       };

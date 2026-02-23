@@ -81,7 +81,7 @@ class PostbackHandler {
     await lineService.replyMessage(replyToken, [
       {
         type: 'text',
-        text: ' You selected: Check Balance\n\nPlease enter your registered phone number (e.g., +919876543210 or 9876543210)',
+        text: ' You selected: Check Balance\n\nPlease enter your registered phone number with country code (e.g., 6596542183 for Singapore, 919890903580 for India)',
       },
     ]);
   }

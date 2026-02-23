@@ -6,25 +6,23 @@ class Validators {
   }
 
   formatPhoneInput(input) {
-    // Remove spaces and special characters
-    let cleaned = input.replace(/\D/g, '');
+    // Remove spaces, dashes, and parentheses but keep + and digits
+    let cleaned = input.replace(/[\s\-()]/g, '').trim();
 
-    // Add + if not present
-    if (!cleaned.startsWith('+')) {
-      // If starts with 0, remove it
-      if (cleaned.startsWith('0')) {
-        cleaned = cleaned.substring(1);
-      }
-
-      // Assume country code 91 (India) if too short
-      if (cleaned.length <= 10) {
-        cleaned = '91' + cleaned;
-      }
-
-      cleaned = '+' + cleaned;
+    // If input already has +, just ensure it has only digits and +
+    if (cleaned.startsWith('+')) {
+      return cleaned;
     }
 
-    return cleaned;
+    // If input starts with +, it's already formatted
+    // Otherwise, just add the + prefix as-is (user should provide country code)
+    // This supports various formats:
+    // - 6596542183 (Singapore, 8 digits after implicit +65)
+    // - 919890903580 (India, full 12 digits with country code)
+    // - 41788891088 (Switzerland, 10 digits with country code)
+    // - 971505597187 (UAE, 11 digits with country code)
+
+    return '+' + cleaned;
   }
 
   isValidOTP(otp) {
