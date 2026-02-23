@@ -74,15 +74,27 @@ class DialogManager {
         // Issue type selected directly from main menu
         if (issueType === 'network' || issueType === 'broadband') {
           const steps = this.config.troubleshootingSteps?.[issueType] || [];
+          const issueLabel = issueType === 'network' ? 'Network Issue' : 'Broadband Issue';
           return {
-            cards: [this.templateService.getTroubleshootingCard(issueType, steps)],
+            cards: [
+              // Echo the user's selection
+              this.templateService.getTextCard('You selected:', issueLabel),
+              // Show troubleshooting steps
+              this.templateService.getTroubleshootingCard(issueType, steps)
+            ],
             newDialogState: 'TROUBLESHOOTING',
             attributes: { issueType }
           };
         }
         // agent_connectivity - go directly to description
+        const agentLabel = issueType === 'agent_connectivity' ? 'Agent Connectivity Issue' : issueType;
         return {
-          cards: [this.templateService.getDescriptionInputCard(issueType)],
+          cards: [
+            // Echo the user's selection
+            this.templateService.getTextCard('You selected:', agentLabel),
+            // Show description input
+            this.templateService.getDescriptionInputCard(issueType)
+          ],
           newDialogState: 'COLLECT_DESCRIPTION',
           attributes: { issueType }
         };
