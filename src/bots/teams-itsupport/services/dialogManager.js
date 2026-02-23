@@ -101,7 +101,10 @@ class DialogManager {
 
       case 'check_ticket_status':
         return {
-          cards: [this.templateService.getTicketIdInputCard()],
+          cards: [
+            this.templateService.getTextCard('You selected:', 'Check Ticket Status'),
+            this.templateService.getTicketIdInputCard()
+          ],
           newDialogState: 'CHECK_TICKET_STATUS'
         };
 
@@ -115,12 +118,18 @@ class DialogManager {
         if (chatResult.success) {
           logger.info(`🟢 LIVE CHAT ACTIVE - User ${userId} connected to IT support agent`);
           return {
-            cards: [this.templateService.getLiveChatStartingCard()],
+            cards: [
+              this.templateService.getTextCard('You selected:', 'Live Chat'),
+              this.templateService.getLiveChatStartingCard()
+            ],
             newDialogState: 'LIVE_CHAT_ACTIVE'
           };
         } else {
           return {
-            cards: [this.templateService.getErrorCard('Failed', 'Could not start live chat. Please try again.')],
+            cards: [
+              this.templateService.getTextCard('You selected:', 'Live Chat'),
+              this.templateService.getErrorCard('Failed', 'Could not start live chat. Please try again.')
+            ],
             newDialogState: 'MAIN_MENU'
           };
         }
@@ -128,7 +137,10 @@ class DialogManager {
 
       case 'end_session':
         return {
-          cards: [this.templateService.getTextCard('Goodbye', 'Thank you for using IT Support. Session ended.')],
+          cards: [
+            this.templateService.getTextCard('You selected:', 'End Session'),
+            this.templateService.getTextCard('Goodbye', 'Thank you for using IT Support. Session ended.')
+          ],
           newDialogState: 'SESSION_CLOSED'
         };
 
@@ -166,7 +178,10 @@ class DialogManager {
 
     if (action === 'back_to_menu') {
       return {
-        cards: [this.templateService.getMainMenuCard()],
+        cards: [
+          this.templateService.getTextCard('You selected:', 'Back to Menu'),
+          this.templateService.getMainMenuCard()
+        ],
         newDialogState: 'MAIN_MENU'
       };
     }
@@ -187,6 +202,7 @@ class DialogManager {
       // Issue fixed by troubleshooting steps - no ticket needed
       return {
         cards: [
+          this.templateService.getTextCard('You selected:', 'Issue Resolved'),
           this.templateService.getTextCard(
             '✅ Great! Issue Resolved',
             'Glad the troubleshooting steps helped. If the issue returns, feel free to submit a ticket.'
@@ -200,7 +216,10 @@ class DialogManager {
     if (action === 'troubleshoot_failed') {
       // Troubleshooting didn't help - proceed to ticket submission
       return {
-        cards: [this.templateService.getDescriptionInputCard(issueType)],
+        cards: [
+          this.templateService.getTextCard('You selected:', 'Troubleshooting Didn\'t Help'),
+          this.templateService.getDescriptionInputCard(issueType)
+        ],
         newDialogState: 'COLLECT_DESCRIPTION',
         attributes: { issueType }
       };
@@ -208,7 +227,10 @@ class DialogManager {
 
     if (action === 'back_to_menu') {
       return {
-        cards: [this.templateService.getMainMenuCard()],
+        cards: [
+          this.templateService.getTextCard('You selected:', 'Back to Menu'),
+          this.templateService.getMainMenuCard()
+        ],
         newDialogState: 'MAIN_MENU'
       };
     }
@@ -229,7 +251,10 @@ class DialogManager {
     // Handle back to menu button
     if (action === 'back_to_menu') {
       return {
-        cards: [this.templateService.getMainMenuCard()],
+        cards: [
+          this.templateService.getTextCard('You selected:', 'Back to Menu'),
+          this.templateService.getMainMenuCard()
+        ],
         newDialogState: 'MAIN_MENU'
       };
     }
@@ -274,13 +299,19 @@ class DialogManager {
 
       if (ticketResult.success) {
         return {
-          cards: [this.templateService.getTicketCreatedCard(ticketResult.data)],
+          cards: [
+            this.templateService.getTextCard('You selected:', 'Create Ticket'),
+            this.templateService.getTicketCreatedCard(ticketResult.data)
+          ],
           newDialogState: 'TICKET_CREATED',
           attributes: { ticketData: ticketResult.data }
         };
       } else {
         return {
-          cards: [this.templateService.getErrorCard('Failed', 'Failed to create ticket. Please try again.')],
+          cards: [
+            this.templateService.getTextCard('You selected:', 'Create Ticket'),
+            this.templateService.getErrorCard('Failed', 'Failed to create ticket. Please try again.')
+          ],
           newDialogState: 'MAIN_MENU'
         };
       }
@@ -288,7 +319,10 @@ class DialogManager {
 
     if (action === 'edit_description') {
       return {
-        cards: [this.templateService.getDescriptionInputCard(issueType)],
+        cards: [
+          this.templateService.getTextCard('You selected:', 'Edit Description'),
+          this.templateService.getDescriptionInputCard(issueType)
+        ],
         newDialogState: 'COLLECT_DESCRIPTION',
         attributes: { issueType }
       };
@@ -296,7 +330,10 @@ class DialogManager {
 
     if (action === 'back_to_menu') {
       return {
-        cards: [this.templateService.getMainMenuCard()],
+        cards: [
+          this.templateService.getTextCard('You selected:', 'Back to Menu'),
+          this.templateService.getMainMenuCard()
+        ],
         newDialogState: 'MAIN_MENU'
       };
     }
@@ -313,14 +350,20 @@ class DialogManager {
 
     if (action === 'check_ticket_status') {
       return {
-        cards: [this.templateService.getTicketIdInputCard()],
+        cards: [
+          this.templateService.getTextCard('You selected:', 'Check Ticket Status'),
+          this.templateService.getTicketIdInputCard()
+        ],
         newDialogState: 'CHECK_TICKET_STATUS'
       };
     }
 
     if (action === 'back_to_menu') {
       return {
-        cards: [this.templateService.getMainMenuCard()],
+        cards: [
+          this.templateService.getTextCard('You selected:', 'Back to Menu'),
+          this.templateService.getMainMenuCard()
+        ],
         newDialogState: 'MAIN_MENU'
       };
     }
@@ -398,14 +441,20 @@ class DialogManager {
 
     if (action === 'check_ticket_status') {
       return {
-        cards: [this.templateService.getTicketIdInputCard()],
+        cards: [
+          this.templateService.getTextCard('You selected:', 'Check Another Ticket'),
+          this.templateService.getTicketIdInputCard()
+        ],
         newDialogState: 'CHECK_TICKET_STATUS'
       };
     }
 
     if (action === 'back_to_menu') {
       return {
-        cards: [this.templateService.getMainMenuCard()],
+        cards: [
+          this.templateService.getTextCard('You selected:', 'Back to Menu'),
+          this.templateService.getMainMenuCard()
+        ],
         newDialogState: 'MAIN_MENU'
       };
     }
