@@ -74,11 +74,8 @@ class DialogManager {
         // Issue type selected directly from main menu
         if (issueType === 'network' || issueType === 'broadband') {
           const steps = this.config.troubleshootingSteps?.[issueType] || [];
-          const issueLabel = issueType === 'network' ? 'Network Issue' : 'Broadband Issue';
           return {
             cards: [
-              // Echo the user's selection
-              this.templateService.getTextCard('You selected:', issueLabel),
               // Show troubleshooting steps
               this.templateService.getTroubleshootingCard(issueType, steps)
             ],
@@ -87,11 +84,8 @@ class DialogManager {
           };
         }
         // agent_connectivity - go directly to description
-        const agentLabel = issueType === 'agent_connectivity' ? 'Agent Connectivity Issue' : issueType;
         return {
           cards: [
-            // Echo the user's selection
-            this.templateService.getTextCard('You selected:', agentLabel),
             // Show description input
             this.templateService.getDescriptionInputCard(issueType)
           ],
@@ -102,7 +96,6 @@ class DialogManager {
       case 'check_ticket_status':
         return {
           cards: [
-            this.templateService.getTextCard('You selected:', 'Check Ticket Status'),
             this.templateService.getTicketIdInputCard()
           ],
           newDialogState: 'CHECK_TICKET_STATUS'
@@ -119,7 +112,6 @@ class DialogManager {
           logger.info(`🟢 LIVE CHAT ACTIVE - User ${userId} connected to IT support agent`);
           return {
             cards: [
-              this.templateService.getTextCard('You selected:', 'Live Chat'),
               this.templateService.getLiveChatStartingCard()
             ],
             newDialogState: 'LIVE_CHAT_ACTIVE'
@@ -127,7 +119,6 @@ class DialogManager {
         } else {
           return {
             cards: [
-              this.templateService.getTextCard('You selected:', 'Live Chat'),
               this.templateService.getErrorCard('Failed', 'Could not start live chat. Please try again.')
             ],
             newDialogState: 'MAIN_MENU'
@@ -138,7 +129,6 @@ class DialogManager {
       case 'end_session':
         return {
           cards: [
-            this.templateService.getTextCard('You selected:', 'End Session'),
             this.templateService.getTextCard('Goodbye', 'Thank you for using IT Support. Session ended.')
           ],
           newDialogState: 'SESSION_CLOSED'
@@ -179,7 +169,6 @@ class DialogManager {
     if (action === 'back_to_menu') {
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Back to Menu'),
           this.templateService.getMainMenuCard()
         ],
         newDialogState: 'MAIN_MENU'
@@ -202,7 +191,6 @@ class DialogManager {
       // Issue fixed by troubleshooting steps - no ticket needed
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Issue Resolved'),
           this.templateService.getTextCard(
             '✅ Great! Issue Resolved',
             'Glad the troubleshooting steps helped. If the issue returns, feel free to submit a ticket.'
@@ -217,7 +205,6 @@ class DialogManager {
       // Troubleshooting didn't help - proceed to ticket submission
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Troubleshooting Didn\'t Help'),
           this.templateService.getDescriptionInputCard(issueType)
         ],
         newDialogState: 'COLLECT_DESCRIPTION',
@@ -228,7 +215,6 @@ class DialogManager {
     if (action === 'back_to_menu') {
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Back to Menu'),
           this.templateService.getMainMenuCard()
         ],
         newDialogState: 'MAIN_MENU'
@@ -252,7 +238,6 @@ class DialogManager {
     if (action === 'back_to_menu') {
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Back to Menu'),
           this.templateService.getMainMenuCard()
         ],
         newDialogState: 'MAIN_MENU'
@@ -300,7 +285,6 @@ class DialogManager {
       if (ticketResult.success) {
         return {
           cards: [
-            this.templateService.getTextCard('You selected:', 'Create Ticket'),
             this.templateService.getTicketCreatedCard(ticketResult.data)
           ],
           newDialogState: 'TICKET_CREATED',
@@ -309,7 +293,6 @@ class DialogManager {
       } else {
         return {
           cards: [
-            this.templateService.getTextCard('You selected:', 'Create Ticket'),
             this.templateService.getErrorCard('Failed', 'Failed to create ticket. Please try again.')
           ],
           newDialogState: 'MAIN_MENU'
@@ -320,7 +303,6 @@ class DialogManager {
     if (action === 'edit_description') {
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Edit Description'),
           this.templateService.getDescriptionInputCard(issueType)
         ],
         newDialogState: 'COLLECT_DESCRIPTION',
@@ -331,7 +313,6 @@ class DialogManager {
     if (action === 'back_to_menu') {
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Back to Menu'),
           this.templateService.getMainMenuCard()
         ],
         newDialogState: 'MAIN_MENU'
@@ -351,7 +332,6 @@ class DialogManager {
     if (action === 'check_ticket_status') {
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Check Ticket Status'),
           this.templateService.getTicketIdInputCard()
         ],
         newDialogState: 'CHECK_TICKET_STATUS'
@@ -361,7 +341,6 @@ class DialogManager {
     if (action === 'back_to_menu') {
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Back to Menu'),
           this.templateService.getMainMenuCard()
         ],
         newDialogState: 'MAIN_MENU'
@@ -442,7 +421,6 @@ class DialogManager {
     if (action === 'check_ticket_status') {
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Check Another Ticket'),
           this.templateService.getTicketIdInputCard()
         ],
         newDialogState: 'CHECK_TICKET_STATUS'
@@ -452,7 +430,6 @@ class DialogManager {
     if (action === 'back_to_menu') {
       return {
         cards: [
-          this.templateService.getTextCard('You selected:', 'Back to Menu'),
           this.templateService.getMainMenuCard()
         ],
         newDialogState: 'MAIN_MENU'
