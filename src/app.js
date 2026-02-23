@@ -312,10 +312,20 @@ app.post('/api/teams/itsupport/push-message', async (req, res) => {
       return res.status(500).json({ error: 'Teams IT Support service not available' });
     }
 
+    // DEBUG: Log the userId received and attempt to find session
+    logger.info(`🔍 Push-message request received. Looking up user: ${userId}`);
+
     // Get session with stored conversation reference
     const session = sessionStore.getSession('teams-itsupport', userId);
+    if (!session) {
+      logger.error(`⚠️  Session not found for user ${userId}`);
+      logger.info(`Available session keys: ${Array.from(sessionStore.sessions?.keys() || []).filter(k => k.startsWith('teams-itsupport:')).join(', ') || 'NONE'}`);
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
     if (!session?.attributes?.conversationReference) {
-      logger.error(`No conversation reference found for user ${userId}`);
+      logger.error(`❌ No conversation reference found for user ${userId}`);
+      logger.info(`Session attributes: ${JSON.stringify(Object.keys(session.attributes || {}))}`);
       return res.status(404).json({ error: 'Conversation not found' });
     }
 
