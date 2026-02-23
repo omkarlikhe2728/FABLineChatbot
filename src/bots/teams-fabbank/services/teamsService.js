@@ -208,21 +208,66 @@ class TeamsService {
         return { success: false, error: 'No conversation reference' };
       }
 
-      logger.debug(`Preparing proactive message: ${text.substring(0, 50)}`);
+      logger.info(`📤 Sending proactive message from agent: ${text.substring(0, 50)}`);
+      logger.debug(`Using conversation reference:`, {
+        serviceUrl: conversationReference.serviceUrl,
+        conversationId: conversationReference.conversation?.id
+      });
 
-      return {
-        success: true,
-        data: {
-          conversationReference,
-          message: {
-            type: 'message',
-            text,
-            attachments: attachments.length > 0 ? attachments : undefined
-          }
+      // Get OAuth token for Teams API call
+      const token = await this.tokenService.getToken();
+      logger.debug(`🔐 OAuth token obtained for proactive message`);
+
+      // Prepare the API endpoint
+      const serviceUrl = conversationReference.serviceUrl;
+      const conversationId = conversationReference.conversation?.id;
+
+      if (!serviceUrl || !conversationId) {
+        logger.error('Missing serviceUrl or conversationId in conversation reference', {
+          serviceUrl: !!serviceUrl,
+          conversationId: !!conversationId
+        });
+        return { success: false, error: 'Invalid conversation reference' };
+      }
+
+      const endpoint = `${serviceUrl}v3/conversations/${conversationId}/activities`;
+      logger.debug(`Teams API endpoint: ${endpoint}`);
+
+      // Prepare the message payload
+      const axios = require('axios');
+      const payload = {
+        type: 'message',
+        text: text,
+        from: {
+          id: this.appId,
+          name: 'FAB Bank Agent'
         }
       };
+
+      if (attachments && attachments.length > 0) {
+        payload.attachments = attachments;
+      }
+
+      logger.debug(`Payload prepared, making API call...`);
+
+      // Make the API call
+      const response = await axios.post(endpoint, payload, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+      logger.info(`✅ Proactive message sent successfully. Response ID: ${response.data?.id}`);
+      return { success: true, data: { id: response.data?.id } };
     } catch (error) {
-      logger.error('Error preparing proactive message', error);
+      logger.error('Error sending proactive message', {
+        message: error.message,
+        code: error.code,
+        statusCode: error.response?.status,
+        responseData: error.response?.data
+      });
       return { success: false, error: error.message };
     }
   }

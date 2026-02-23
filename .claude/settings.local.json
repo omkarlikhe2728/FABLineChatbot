@@ -31,7 +31,11 @@
       "Bash(git check-ignore:*)",
       "Bash(git --version:*)",
       "Bash(npm run migrate:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(node:*)",
+      "Bash(git checkout:*)",
+      "Bash(LOG_LEVEL=INFO NODE_ENV=production timeout 15 npm run dev:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }
