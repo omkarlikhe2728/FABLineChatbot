@@ -101,6 +101,7 @@ class DialogManager {
         );
 
         if (chatResult.success) {
+          logger.info(`🟢 LIVE CHAT ACTIVE - User ${userId} connected to IT support agent`);
           return {
             cards: [this.templateService.getLiveChatStartingCard()],
             newDialogState: 'LIVE_CHAT_ACTIVE'

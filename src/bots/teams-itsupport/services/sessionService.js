@@ -91,7 +91,11 @@ class SessionService {
           conversationReference: activity
         };
         sessionStore.updateSession(this.botId, userId, { attributes: updatedAttrs });
-        logger.debug(`Stored conversation reference for user ${userId}`);
+        logger.info(`✅ Stored conversation reference for user ${userId}`);
+        logger.debug(`Conversation ID: ${activity.conversation?.id}`);
+        logger.debug(`Service URL: ${activity.serviceUrl}`);
+      } else {
+        logger.warn(`⚠️  Session not found for user ${userId} - cannot store conversation reference`);
       }
     } catch (error) {
       logger.error(`Error updating conversation reference for ${userId}`, error);
