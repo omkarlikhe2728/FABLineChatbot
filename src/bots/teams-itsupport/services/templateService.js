@@ -269,9 +269,9 @@ class TemplateService {
   }
 
   /**
-   * Ticket confirmation card
+   * Ticket confirmation card (with contact info from Salesforce)
    */
-  getConfirmTicketCard(issueType, description) {
+  getConfirmTicketCard(issueType, description, contactName, mobileNumber) {
     const issueLabels = {
       'network': 'Network Issue',
       'broadband': 'Broadband Issue',
@@ -286,6 +286,24 @@ class TemplateService {
 
     const info = priorityInfo[issueType];
 
+    const facts = [
+      { "name": "Issue Type", "value": issueLabels[issueType] || issueType },
+      { "name": "Priority", "value": info?.priority || 'MEDIUM' },
+      { "name": "ETA", "value": info?.eta || 'TBD' }
+    ];
+
+    if (contactName) {
+      facts.push({ "name": "Contact", "value": contactName });
+    }
+    if (mobileNumber) {
+      facts.push({ "name": "Mobile", "value": mobileNumber });
+    }
+
+    facts.push({
+      "name": "Description",
+      "value": description.substring(0, 50) + (description.length > 50 ? '...' : '')
+    });
+
     return {
       "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
       "type": "AdaptiveCard",
@@ -293,7 +311,7 @@ class TemplateService {
       "body": [
         {
           "type": "TextBlock",
-          "text": "Confirm Your Ticket",
+          "text": "Confirm Your Case",
           "size": "large",
           "weight": "bolder"
         },
@@ -303,18 +321,13 @@ class TemplateService {
           "items": [
             {
               "type": "FactSet",
-              "facts": [
-                { "name": "Issue Type", "value": issueLabels[issueType] },
-                { "name": "Priority", "value": info.priority },
-                { "name": "ETA", "value": info.eta },
-                { "name": "Description", "value": description.substring(0, 50) + (description.length > 50 ? '...' : '') }
-              ]
+              "facts": facts
             }
           ]
         },
         {
           "type": "TextBlock",
-          "text": "Is this correct? Submit to create the ticket or edit your response.",
+          "text": "Is this correct? Submit to create the case or edit your response.",
           "wrap": true,
           "spacing": "medium",
           "size": "medium"
@@ -323,7 +336,7 @@ class TemplateService {
       "actions": [
         {
           "type": "Action.Submit",
-          "title": " Submit Ticket",
+          "title": "Submit Case",
           "data": { "action": "confirm_ticket", "issueType": issueType, "description": description }
         },
         {
@@ -407,7 +420,7 @@ class TemplateService {
   }
 
   /**
-   * Ticket ID input prompt
+   * Case number input prompt (Salesforce format)
    */
   getTicketIdInputCard() {
     return {
@@ -417,20 +430,20 @@ class TemplateService {
       "body": [
         {
           "type": "TextBlock",
-          "text": "Check Ticket Status",
+          "text": "Check Case Status",
           "size": "large",
           "weight": "bolder"
         },
         {
           "type": "TextBlock",
-          "text": "Enter your ticket ID to check the status:",
+          "text": "Enter your case number to check the status:",
           "wrap": true,
           "spacing": "medium",
           "size": "default"
         },
         {
           "type": "TextBlock",
-          "text": "Format: IT-YYYYMMDD-XXXXXX (e.g., IT-20260219-A1B2C3)",
+          "text": "Format: e.g., 00001064",
           "wrap": true,
           "spacing": "small",
           "size": "medium",
@@ -567,6 +580,360 @@ class TemplateService {
         {
           "type": "Action.Submit",
           "title": "📋 Back to Menu",
+          "data": { "action": "back_to_menu" }
+        }
+      ]
+    };
+  }
+
+  // ==================== SALESFORCE INTEGRATION CARDS ====================
+
+  /**
+   * Mobile number input card
+   * @param {string} context - 'ticket' | 'livechat' | 'status'
+   */
+  getMobileInputCard(context = 'ticket') {
+    const subtitles = {
+      'ticket': "We'll look up your contact information and existing cases.",
+      'livechat': "We need your contact number before connecting you to an agent.",
+      'status': "We'll find all cases associated with your number."
+    };
+
+    return {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": [
+        {
+          "type": "TextBlock",
+          "text": "📱 Enter Your Mobile Number",
+          "size": "large",
+          "weight": "bolder"
+        },
+        {
+          "type": "TextBlock",
+          "text": subtitles[context] || subtitles['ticket'],
+          "wrap": true,
+          "spacing": "medium",
+          "size": "default"
+        },
+        {
+          "type": "TextBlock",
+          "text": "Please type your mobile number (e.g., 919890903580 or +919890903580)",
+          "wrap": true,
+          "spacing": "medium",
+          "size": "default",
+          "color": "accent"
+        }
+      ],
+      "actions": [
+        {
+          "type": "Action.Submit",
+          "title": "⬅️ Back to Menu",
+          "data": { "action": "back_to_menu" }
+        }
+      ]
+    };
+  }
+
+  /**
+   * Contact found display card
+   */
+  getContactFoundCard(contact) {
+    const facts = [
+      { "name": "Name", "value": contact.Name || 'N/A' }
+    ];
+    if (contact.Email) {
+      facts.push({ "name": "Email", "value": contact.Email });
+    }
+    if (contact.MobilePhone) {
+      facts.push({ "name": "Mobile", "value": contact.MobilePhone });
+    }
+
+    return {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": [
+        {
+          "type": "Container",
+          "style": "good",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Contact Found",
+              "size": "medium",
+              "weight": "bolder",
+              "color": "light"
+            }
+          ]
+        },
+        {
+          "type": "FactSet",
+          "facts": facts,
+          "spacing": "medium"
+        }
+      ]
+    };
+  }
+
+  /**
+   * Existing cases list card
+   * @param {Array} cases - Salesforce case objects
+   * @param {object} contact - { Name, Email }
+   * @param {boolean} showCreateButton - show "Create New Case" button (false for status-only lookup)
+   */
+  getExistingCasesCard(cases, contact, showCreateButton = true) {
+    const body = [
+      {
+        "type": "TextBlock",
+        "text": `Existing Cases for ${contact?.Name || 'Contact'}`,
+        "size": "large",
+        "weight": "bolder"
+      },
+      {
+        "type": "TextBlock",
+        "text": `Found ${cases.length} case(s):`,
+        "spacing": "medium",
+        "size": "default"
+      }
+    ];
+
+    // Show up to 5 most recent cases
+    const recentCases = cases.slice(0, 5);
+    recentCases.forEach((c, index) => {
+      if (index > 0) {
+        body.push({ "type": "TextBlock", "text": "---", "spacing": "small" });
+      }
+      body.push({
+        "type": "Container",
+        "style": "emphasis",
+        "items": [
+          {
+            "type": "FactSet",
+            "facts": [
+              { "name": "Case #", "value": c.CaseNumber || 'N/A' },
+              { "name": "Subject", "value": c.Subject || 'N/A' },
+              { "name": "Status", "value": c.Status || 'N/A' },
+              { "name": "Priority", "value": c.Priority || 'N/A' }
+            ]
+          }
+        ]
+      });
+    });
+
+    if (cases.length > 5) {
+      body.push({
+        "type": "TextBlock",
+        "text": `... and ${cases.length - 5} more case(s)`,
+        "spacing": "small",
+        "isSubtle": true
+      });
+    }
+
+    const actions = [];
+    if (showCreateButton) {
+      actions.push({
+        "type": "Action.Submit",
+        "title": "Create New Case",
+        "data": { "action": "create_new_case" }
+      });
+    }
+    actions.push({
+      "type": "Action.Submit",
+      "title": "📋 Back to Menu",
+      "data": { "action": "back_to_menu" }
+    });
+
+    return {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": body,
+      "actions": actions
+    };
+  }
+
+  /**
+   * Case created success card (Salesforce)
+   */
+  getCaseCreatedCard(caseData, details = {}) {
+    if (!caseData || !caseData.Id) {
+      return this.getErrorCard('Error', 'Failed to create case');
+    }
+
+    const facts = [
+      { "name": "Case ID", "value": caseData.Id }
+    ];
+    if (details.issueType) {
+      const issueLabels = {
+        'network': 'Network Issue',
+        'broadband': 'Broadband Issue',
+        'agent_connectivity': 'Agent Connectivity Issue'
+      };
+      facts.push({ "name": "Issue Type", "value": issueLabels[details.issueType] || details.issueType });
+    }
+    if (details.priority) {
+      facts.push({ "name": "Priority", "value": details.priority });
+    }
+    if (details.contactName) {
+      facts.push({ "name": "Contact", "value": details.contactName });
+    }
+
+    return {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": [
+        {
+          "type": "Container",
+          "style": "good",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Case Created Successfully",
+              "size": "large",
+              "weight": "bolder",
+              "color": "light"
+            }
+          ]
+        },
+        {
+          "type": "TextBlock",
+          "text": "Your support case has been logged in Salesforce. Our team will contact you soon.",
+          "wrap": true,
+          "spacing": "medium"
+        },
+        {
+          "type": "FactSet",
+          "facts": facts,
+          "spacing": "medium"
+        },
+        {
+          "type": "TextBlock",
+          "text": "📌 Save your Case ID for reference",
+          "wrap": true,
+          "spacing": "medium",
+          "size": "medium",
+          "color": "accent"
+        }
+      ],
+      "actions": [
+        {
+          "type": "Action.Submit",
+          "title": "🔍 Check Case Status",
+          "data": { "action": "check_ticket_status" }
+        },
+        {
+          "type": "Action.Submit",
+          "title": "📋 Back to Menu",
+          "data": { "action": "back_to_menu" }
+        }
+      ]
+    };
+  }
+
+  /**
+   * Case status display card (Salesforce)
+   */
+  getCaseStatusCard(caseData) {
+    if (!caseData) {
+      return this.getErrorCard('Error', 'Unable to display case status');
+    }
+
+    const facts = [
+      { "name": "Case #", "value": caseData.CaseNumber || 'N/A' },
+      { "name": "Subject", "value": caseData.Subject || 'N/A' },
+      { "name": "Status", "value": caseData.Status || 'N/A' },
+      { "name": "Priority", "value": caseData.Priority || 'N/A' },
+      { "name": "Origin", "value": caseData.Origin || 'N/A' }
+    ];
+
+    if (caseData.CreatedDate) {
+      facts.push({ "name": "Created", "value": new Date(caseData.CreatedDate).toLocaleDateString() });
+    }
+
+    const body = [
+      {
+        "type": "TextBlock",
+        "text": "Case Status",
+        "size": "large",
+        "weight": "bolder"
+      },
+      {
+        "type": "FactSet",
+        "facts": facts,
+        "spacing": "medium"
+      }
+    ];
+
+    if (caseData.Description) {
+      body.push({
+        "type": "TextBlock",
+        "text": `Description: ${caseData.Description.substring(0, 200)}${caseData.Description.length > 200 ? '...' : ''}`,
+        "wrap": true,
+        "spacing": "medium",
+        "size": "default"
+      });
+    }
+
+    return {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": body,
+      "actions": [
+        {
+          "type": "Action.Submit",
+          "title": "🔍 Check Another Case",
+          "data": { "action": "check_ticket_status" }
+        },
+        {
+          "type": "Action.Submit",
+          "title": "📋 Back to Menu",
+          "data": { "action": "back_to_menu" }
+        }
+      ]
+    };
+  }
+
+  /**
+   * Check status options card (by case number or by mobile)
+   */
+  getCheckStatusOptionsCard() {
+    return {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": [
+        {
+          "type": "TextBlock",
+          "text": "🔍 Check Case Status",
+          "size": "large",
+          "weight": "bolder"
+        },
+        {
+          "type": "TextBlock",
+          "text": "How would you like to look up your case?",
+          "wrap": true,
+          "spacing": "medium",
+          "size": "default"
+        }
+      ],
+      "actions": [
+        {
+          "type": "Action.Submit",
+          "title": "🔢 By Case Number",
+          "data": { "action": "status_by_case_number" }
+        },
+        {
+          "type": "Action.Submit",
+          "title": "📱 By Mobile Number",
+          "data": { "action": "status_by_mobile" }
+        },
+        {
+          "type": "Action.Submit",
+          "title": "⬅️ Back to Menu",
           "data": { "action": "back_to_menu" }
         }
       ]

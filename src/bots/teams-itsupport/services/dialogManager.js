@@ -1,13 +1,13 @@
 const logger = require('../../../common/utils/logger');
 
 class DialogManager {
-  constructor(sessionService, itSupportService, templateService, liveChatService, config) {
+  constructor(sessionService, salesforceService, templateService, liveChatService, config) {
     this.sessionService = sessionService;
-    this.itSupportService = itSupportService;
+    this.salesforceService = salesforceService;
     this.templateService = templateService;
     this.liveChatService = liveChatService;
     this.config = config;
-    logger.info('DialogManager initialized for IT Support bot');
+    logger.info('DialogManager initialized for IT Support bot (Salesforce integration)');
   }
 
   /**
@@ -28,6 +28,12 @@ class DialogManager {
         case 'TROUBLESHOOTING':
           result = await this._handleTroubleshooting(userId, text, actionData, attributes, displayName);
           break;
+        case 'COLLECT_MOBILE':
+          result = await this._handleCollectMobile(userId, text, actionData, attributes, displayName);
+          break;
+        case 'SHOW_EXISTING_CASES':
+          result = await this._handleShowExistingCases(userId, text, actionData, attributes, displayName);
+          break;
         case 'COLLECT_DESCRIPTION':
           result = await this._handleCollectDescription(userId, text, actionData, attributes, displayName);
           break;
@@ -40,8 +46,14 @@ class DialogManager {
         case 'CHECK_TICKET_STATUS':
           result = await this._handleCheckTicketStatus(userId, text, actionData, attributes, displayName);
           break;
+        case 'COLLECT_MOBILE_STATUS':
+          result = await this._handleCollectMobileStatus(userId, text, actionData, attributes, displayName);
+          break;
         case 'SHOW_TICKET_STATUS':
           result = await this._handleShowTicketStatus(userId, text, actionData, attributes, displayName);
+          break;
+        case 'COLLECT_MOBILE_LIVECHAT':
+          result = await this._handleCollectMobileLiveChat(userId, text, actionData, attributes, displayName);
           break;
         case 'LIVE_CHAT_ACTIVE':
           result = await this._handleLiveChat(userId, text, actionData, attributes, displayName);
@@ -77,62 +89,39 @@ class DialogManager {
           const issueLabel = issueType === 'network' ? 'Network Issue' : 'Broadband Issue';
           return {
             cards: [
-              // Show what was selected - simple text card
               this.templateService.getTextCard(issueLabel, ''),
-              // Show troubleshooting steps
               this.templateService.getTroubleshootingCard(issueType, steps)
             ],
             newDialogState: 'TROUBLESHOOTING',
             attributes: { issueType }
           };
         }
-        // agent_connectivity - go directly to description
+        // agent_connectivity - ask for mobile number first
         return {
           cards: [
-            // Show what was selected
             this.templateService.getTextCard('Agent Connectivity Issue', ''),
-            // Show description input
-            this.templateService.getDescriptionInputCard(issueType)
+            this.templateService.getMobileInputCard('ticket')
           ],
-          newDialogState: 'COLLECT_DESCRIPTION',
+          newDialogState: 'COLLECT_MOBILE',
           attributes: { issueType }
         };
 
       case 'check_ticket_status':
+        // Show options: by case number or by mobile
         return {
-          cards: [
-            this.templateService.getTextCard('Check Ticket Status', ''),
-            this.templateService.getTicketIdInputCard()
-          ],
+          cards: [this.templateService.getCheckStatusOptionsCard()],
           newDialogState: 'CHECK_TICKET_STATUS'
         };
 
-      case 'live_chat': {
-        const chatResult = await this.liveChatService.startLiveChat(
-          userId,
-          displayName,  // ✅ Use actual user name instead of hardcoded 'Teams User'
-          'Customer initiated IT support live chat'
-        );
-
-        if (chatResult.success) {
-          logger.info(`🟢 LIVE CHAT ACTIVE - User ${userId} connected to IT support agent`);
-          return {
-            cards: [
-              this.templateService.getTextCard('Live Chat', ''),
-              this.templateService.getLiveChatStartingCard()
-            ],
-            newDialogState: 'LIVE_CHAT_ACTIVE'
-          };
-        } else {
-          return {
-            cards: [
-              this.templateService.getTextCard('Live Chat', ''),
-              this.templateService.getErrorCard('Failed', 'Could not start live chat. Please try again.')
-            ],
-            newDialogState: 'MAIN_MENU'
-          };
-        }
-      }
+      case 'live_chat':
+        // Ask for mobile number before connecting to agent
+        return {
+          cards: [
+            this.templateService.getTextCard('Live Chat', ''),
+            this.templateService.getMobileInputCard('livechat')
+          ],
+          newDialogState: 'COLLECT_MOBILE_LIVECHAT'
+        };
 
       case 'end_session':
         return {
@@ -167,10 +156,10 @@ class DialogManager {
         };
       }
 
-      // For agent_connectivity, go directly to description
+      // For agent_connectivity, ask for mobile number
       return {
-        cards: [this.templateService.getDescriptionInputCard(issueType)],
-        newDialogState: 'COLLECT_DESCRIPTION',
+        cards: [this.templateService.getMobileInputCard('ticket')],
+        newDialogState: 'COLLECT_MOBILE',
         attributes: { issueType }
       };
     }
@@ -198,7 +187,6 @@ class DialogManager {
     const issueType = attributes?.issueType;
 
     if (action === 'troubleshoot_resolved') {
-      // Issue fixed by troubleshooting steps - no ticket needed
       return {
         cards: [
           this.templateService.getTextCard('Issue Resolved', ''),
@@ -213,13 +201,13 @@ class DialogManager {
     }
 
     if (action === 'troubleshoot_failed') {
-      // Troubleshooting didn't help - proceed to ticket submission
+      // Troubleshooting didn't help - ask for mobile number before ticket submission
       return {
         cards: [
-          this.templateService.getTextCard('Troubleshooting Didn\'t Help', ''),
-          this.templateService.getDescriptionInputCard(issueType)
+          this.templateService.getTextCard("Troubleshooting Didn't Help", ''),
+          this.templateService.getMobileInputCard('ticket')
         ],
-        newDialogState: 'COLLECT_DESCRIPTION',
+        newDialogState: 'COLLECT_MOBILE',
         attributes: { issueType }
       };
     }
@@ -239,6 +227,121 @@ class DialogManager {
     return {
       cards: [this.templateService.getTroubleshootingCard(issueType, steps)],
       newDialogState: 'TROUBLESHOOTING'
+    };
+  }
+
+  // ==================== COLLECT MOBILE (Ticket Flow) ====================
+  async _handleCollectMobile(userId, text, actionData, attributes, displayName = 'Teams User') {
+    if (actionData?.action === 'back_to_menu') {
+      return {
+        cards: [this.templateService.getTextCard('Back to Menu', ''), this.templateService.getMainMenuCard()],
+        newDialogState: 'MAIN_MENU'
+      };
+    }
+
+    const mobileNumber = text?.trim();
+
+    // Validate mobile format
+    if (!mobileNumber || !this.salesforceService.validateMobileFormat(mobileNumber)) {
+      return {
+        cards: [
+          this.templateService.getErrorCard('Invalid Mobile Number',
+            'Please enter a valid mobile number (e.g., 919890903580 or +919890903580)'),
+          this.templateService.getMobileInputCard('ticket')
+        ],
+        newDialogState: 'COLLECT_MOBILE'
+      };
+    }
+
+    // Look up contact in Salesforce
+    const contactResult = await this.salesforceService.getContactByMobile(mobileNumber);
+
+    if (!contactResult.success) {
+      if (contactResult.notFound) {
+        // Contact not found - still allow case creation with just MobileNumber
+        return {
+          cards: [
+            this.templateService.getTextCard('Contact Not Found',
+              `No contact found for ${mobileNumber}. You can still submit a case.`),
+            this.templateService.getDescriptionInputCard(attributes?.issueType)
+          ],
+          newDialogState: 'COLLECT_DESCRIPTION',
+          attributes: { ...attributes, mobileNumber, contactId: null, accountId: null, contactName: null }
+        };
+      }
+      // API error
+      return {
+        cards: [
+          this.templateService.getErrorCard('Lookup Failed', 'Could not look up contact. Please try again.'),
+          this.templateService.getMobileInputCard('ticket')
+        ],
+        newDialogState: 'COLLECT_MOBILE'
+      };
+    }
+
+    // Contact found - save info and fetch existing cases
+    const contact = contactResult.data;
+    const newAttributes = {
+      ...attributes,
+      mobileNumber,
+      contactId: contact.Id,
+      accountId: contact.AccountId,
+      contactName: contact.Name,
+      contactEmail: contact.Email
+    };
+
+    const casesResult = await this.salesforceService.getCasesByContactId(contact.Id);
+
+    if (casesResult.success && casesResult.data && casesResult.data.length > 0) {
+      // Has existing cases - show them
+      return {
+        cards: [
+          this.templateService.getContactFoundCard(contact),
+          this.templateService.getExistingCasesCard(casesResult.data, contact, true)
+        ],
+        newDialogState: 'SHOW_EXISTING_CASES',
+        attributes: { ...newAttributes, existingCases: casesResult.data }
+      };
+    }
+
+    // No existing cases - go directly to description collection
+    return {
+      cards: [
+        this.templateService.getContactFoundCard(contact),
+        this.templateService.getTextCard('No Existing Cases', "No open cases found. Let's create a new one."),
+        this.templateService.getDescriptionInputCard(attributes?.issueType)
+      ],
+      newDialogState: 'COLLECT_DESCRIPTION',
+      attributes: newAttributes
+    };
+  }
+
+  // ==================== SHOW EXISTING CASES ====================
+  async _handleShowExistingCases(userId, text, actionData, attributes, displayName = 'Teams User') {
+    const action = actionData?.action;
+
+    if (action === 'create_new_case') {
+      // User wants to create a new case despite existing ones
+      return {
+        cards: [this.templateService.getDescriptionInputCard(attributes?.issueType)],
+        newDialogState: 'COLLECT_DESCRIPTION',
+        attributes
+      };
+    }
+
+    if (action === 'back_to_menu') {
+      return {
+        cards: [this.templateService.getTextCard('Back to Menu', ''), this.templateService.getMainMenuCard()],
+        newDialogState: 'MAIN_MENU'
+      };
+    }
+
+    // Re-show existing cases for unrecognized input
+    const cases = attributes?.existingCases || [];
+    const contact = { Name: attributes?.contactName, Email: attributes?.contactEmail };
+    return {
+      cards: [this.templateService.getExistingCasesCard(cases, contact, true)],
+      newDialogState: 'SHOW_EXISTING_CASES'
     };
   }
 
@@ -273,11 +376,13 @@ class DialogManager {
       };
     }
 
-    // Show confirmation
+    // Show confirmation with contact info
     return {
-      cards: [this.templateService.getConfirmTicketCard(issueType, description)],
+      cards: [this.templateService.getConfirmTicketCard(
+        issueType, description, attributes?.contactName, attributes?.mobileNumber
+      )],
       newDialogState: 'CONFIRM_TICKET',
-      attributes: { issueType, description }
+      attributes: { ...attributes, description }
     };
   }
 
@@ -288,28 +393,45 @@ class DialogManager {
     const description = actionData?.description || attributes?.description;
 
     if (action === 'confirm_ticket') {
-      // Create the ticket
-      const ticketResult = await this.itSupportService.createTicket(
-        userId,
-        'Teams User',
-        issueType,
-        description
-      );
+      // Create case via Salesforce
+      const subject = this.salesforceService.mapIssueToSubject(issueType);
+      const priority = this.salesforceService.mapIssueToPriority(issueType);
 
-      if (ticketResult.success) {
+      const caseParams = {
+        Subject: subject,
+        Description: description,
+        Priority: priority,
+        Origin: 'Web'
+      };
+
+      // Use ContactId+AccountId if available, otherwise MobileNumber
+      if (attributes?.contactId && attributes?.accountId) {
+        caseParams.ContactId = attributes.contactId;
+        caseParams.AccountId = attributes.accountId;
+      } else if (attributes?.mobileNumber) {
+        caseParams.MobileNumber = attributes.mobileNumber;
+      }
+
+      const caseResult = await this.salesforceService.createCase(caseParams);
+
+      if (caseResult.success) {
         return {
           cards: [
-            this.templateService.getTextCard('Create Ticket', ''),
-            this.templateService.getTicketCreatedCard(ticketResult.data)
+            this.templateService.getTextCard('Create Case', ''),
+            this.templateService.getCaseCreatedCard(caseResult.data, {
+              issueType,
+              priority,
+              contactName: attributes?.contactName || 'N/A'
+            })
           ],
           newDialogState: 'TICKET_CREATED',
-          attributes: { ticketData: ticketResult.data }
+          attributes: { caseData: caseResult.data }
         };
       } else {
         return {
           cards: [
-            this.templateService.getTextCard('Create Ticket', ''),
-            this.templateService.getErrorCard('Failed', 'Failed to create ticket. Please try again.')
+            this.templateService.getTextCard('Create Case', ''),
+            this.templateService.getErrorCard('Failed', `Failed to create case: ${caseResult.error}`)
           ],
           newDialogState: 'MAIN_MENU'
         };
@@ -323,7 +445,7 @@ class DialogManager {
           this.templateService.getDescriptionInputCard(issueType)
         ],
         newDialogState: 'COLLECT_DESCRIPTION',
-        attributes: { issueType }
+        attributes: { ...attributes, issueType }
       };
     }
 
@@ -338,7 +460,9 @@ class DialogManager {
     }
 
     return {
-      cards: [this.templateService.getConfirmTicketCard(issueType, description)],
+      cards: [this.templateService.getConfirmTicketCard(
+        issueType, description, attributes?.contactName, attributes?.mobileNumber
+      )],
       newDialogState: 'CONFIRM_TICKET'
     };
   }
@@ -349,10 +473,7 @@ class DialogManager {
 
     if (action === 'check_ticket_status') {
       return {
-        cards: [
-          this.templateService.getTextCard('Check Ticket Status', ''),
-          this.templateService.getTicketIdInputCard()
-        ],
+        cards: [this.templateService.getCheckStatusOptionsCard()],
         newDialogState: 'CHECK_TICKET_STATUS'
       };
     }
@@ -375,63 +496,151 @@ class DialogManager {
 
   // ==================== CHECK TICKET STATUS ====================
   async _handleCheckTicketStatus(userId, text, actionData, attributes, displayName = 'Teams User') {
-    const ticketId = text?.trim().toUpperCase();
+    const action = actionData?.action;
 
-    if (!ticketId) {
+    // Handle button actions from the options card
+    if (action === 'status_by_case_number') {
       return {
         cards: [this.templateService.getTicketIdInputCard()],
+        newDialogState: 'CHECK_TICKET_STATUS',
+        attributes: { statusLookupMode: 'case_number' }
+      };
+    }
+
+    if (action === 'status_by_mobile') {
+      return {
+        cards: [this.templateService.getMobileInputCard('status')],
+        newDialogState: 'COLLECT_MOBILE_STATUS'
+      };
+    }
+
+    if (action === 'back_to_menu') {
+      return {
+        cards: [this.templateService.getTextCard('Back to Menu', ''), this.templateService.getMainMenuCard()],
+        newDialogState: 'MAIN_MENU'
+      };
+    }
+
+    // Text input - treat as case number
+    const caseNumber = text?.trim();
+
+    if (!caseNumber) {
+      return {
+        cards: [this.templateService.getCheckStatusOptionsCard()],
         newDialogState: 'CHECK_TICKET_STATUS'
       };
     }
 
-    // Validate ticket ID format
-    if (!this.itSupportService.validateTicketIdFormat(ticketId)) {
+    // Validate case number format
+    if (!this.salesforceService.validateCaseNumberFormat(caseNumber)) {
       return {
         cards: [
-          this.templateService.getErrorCard(
-            'Invalid Format',
-            'Ticket ID must be in format: IT-YYYYMMDD-XXXXXX (e.g., IT-20260219-A1B2C3)'
-          ),
+          this.templateService.getErrorCard('Invalid Format',
+            'Case number must be a numeric value (e.g., 00001064)'),
           this.templateService.getTicketIdInputCard()
         ],
-        newDialogState: 'CHECK_TICKET_STATUS'
+        newDialogState: 'CHECK_TICKET_STATUS',
+        attributes: { statusLookupMode: 'case_number' }
       };
     }
 
-    // Fetch ticket status
-    const ticketResult = await this.itSupportService.getTicketStatus(ticketId);
+    // Fetch case from Salesforce
+    const caseResult = await this.salesforceService.getCaseByCaseNumber(caseNumber);
 
-    if (ticketResult.success) {
+    if (caseResult.success) {
       return {
-        cards: [this.templateService.getTicketStatusCard(ticketResult.data)],
+        cards: [this.templateService.getCaseStatusCard(caseResult.data)],
         newDialogState: 'SHOW_TICKET_STATUS',
-        attributes: { ticketId }
+        attributes: { caseNumber }
+      };
+    } else if (caseResult.notFound) {
+      return {
+        cards: [
+          this.templateService.getErrorCard('Case Not Found', `No case found with number: ${caseNumber}`),
+          this.templateService.getTicketIdInputCard()
+        ],
+        newDialogState: 'CHECK_TICKET_STATUS',
+        attributes: { statusLookupMode: 'case_number' }
       };
     } else {
-      if (ticketResult.notFound) {
+      return {
+        cards: [
+          this.templateService.getErrorCard('Failed', 'Could not retrieve case status. Please try again.'),
+          this.templateService.getTicketIdInputCard()
+        ],
+        newDialogState: 'CHECK_TICKET_STATUS',
+        attributes: { statusLookupMode: 'case_number' }
+      };
+    }
+  }
+
+  // ==================== COLLECT MOBILE FOR STATUS ====================
+  async _handleCollectMobileStatus(userId, text, actionData, attributes, displayName = 'Teams User') {
+    if (actionData?.action === 'back_to_menu') {
+      return {
+        cards: [this.templateService.getTextCard('Back to Menu', ''), this.templateService.getMainMenuCard()],
+        newDialogState: 'MAIN_MENU'
+      };
+    }
+
+    const mobileNumber = text?.trim();
+
+    if (!mobileNumber || !this.salesforceService.validateMobileFormat(mobileNumber)) {
+      return {
+        cards: [
+          this.templateService.getErrorCard('Invalid Mobile Number',
+            'Please enter a valid mobile number (e.g., 919890903580 or +919890903580)'),
+          this.templateService.getMobileInputCard('status')
+        ],
+        newDialogState: 'COLLECT_MOBILE_STATUS'
+      };
+    }
+
+    // Look up contact first
+    const contactResult = await this.salesforceService.getContactByMobile(mobileNumber);
+
+    if (!contactResult.success) {
+      if (contactResult.notFound) {
         return {
           cards: [
-            this.templateService.getErrorCard(
-              'Ticket Not Found',
-              `No ticket found with ID: ${ticketId}`
-            ),
-            this.templateService.getTicketIdInputCard()
+            this.templateService.getTextCard('No Contact Found',
+              `No contact found for ${mobileNumber}. No cases to display.`),
+            this.templateService.getMainMenuCard()
           ],
-          newDialogState: 'CHECK_TICKET_STATUS'
-        };
-      } else {
-        return {
-          cards: [
-            this.templateService.getErrorCard(
-              'Failed',
-              'Could not retrieve ticket status. Please try again.'
-            ),
-            this.templateService.getTicketIdInputCard()
-          ],
-          newDialogState: 'CHECK_TICKET_STATUS'
+          newDialogState: 'MAIN_MENU'
         };
       }
+      return {
+        cards: [
+          this.templateService.getErrorCard('Lookup Failed', 'Could not look up contact. Please try again.'),
+          this.templateService.getMobileInputCard('status')
+        ],
+        newDialogState: 'COLLECT_MOBILE_STATUS'
+      };
     }
+
+    // Contact found - fetch their cases
+    const contact = contactResult.data;
+    const casesResult = await this.salesforceService.getCasesByContactId(contact.Id);
+
+    if (casesResult.success && casesResult.data && casesResult.data.length > 0) {
+      return {
+        cards: [
+          this.templateService.getContactFoundCard(contact),
+          this.templateService.getExistingCasesCard(casesResult.data, contact, false)
+        ],
+        newDialogState: 'SHOW_TICKET_STATUS'
+      };
+    }
+
+    return {
+      cards: [
+        this.templateService.getContactFoundCard(contact),
+        this.templateService.getTextCard('No Cases Found', `No cases found for ${contact.Name}.`),
+        this.templateService.getMainMenuCard()
+      ],
+      newDialogState: 'MAIN_MENU'
+    };
   }
 
   // ==================== SHOW TICKET STATUS ====================
@@ -440,10 +649,7 @@ class DialogManager {
 
     if (action === 'check_ticket_status') {
       return {
-        cards: [
-          this.templateService.getTextCard('Check Another Ticket', ''),
-          this.templateService.getTicketIdInputCard()
-        ],
+        cards: [this.templateService.getCheckStatusOptionsCard()],
         newDialogState: 'CHECK_TICKET_STATUS'
       };
     }
@@ -462,6 +668,67 @@ class DialogManager {
       cards: [this.templateService.getMainMenuCard()],
       newDialogState: 'MAIN_MENU'
     };
+  }
+
+  // ==================== COLLECT MOBILE FOR LIVE CHAT ====================
+  async _handleCollectMobileLiveChat(userId, text, actionData, attributes, displayName = 'Teams User') {
+    if (actionData?.action === 'back_to_menu') {
+      return {
+        cards: [this.templateService.getTextCard('Back to Menu', ''), this.templateService.getMainMenuCard()],
+        newDialogState: 'MAIN_MENU'
+      };
+    }
+
+    const mobileNumber = text?.trim();
+
+    if (!mobileNumber || !this.salesforceService.validateMobileFormat(mobileNumber)) {
+      return {
+        cards: [
+          this.templateService.getErrorCard('Invalid Mobile Number',
+            'Please enter a valid mobile number.'),
+          this.templateService.getMobileInputCard('livechat')
+        ],
+        newDialogState: 'COLLECT_MOBILE_LIVECHAT'
+      };
+    }
+
+    // Optionally look up contact for better display name
+    let contactName = displayName;
+    try {
+      const contactResult = await this.salesforceService.getContactByMobile(mobileNumber);
+      if (contactResult.success && contactResult.data?.Name) {
+        contactName = contactResult.data.Name;
+      }
+    } catch (e) {
+      // Non-critical - proceed with Teams display name
+    }
+
+    // Start live chat
+    const chatResult = await this.liveChatService.startLiveChat(
+      userId,
+      contactName,
+      `Customer initiated IT support live chat (mobile: ${mobileNumber})`
+    );
+
+    if (chatResult.success) {
+      logger.info(`🟢 LIVE CHAT ACTIVE - User ${userId} (${contactName}) connected to IT support agent`);
+      return {
+        cards: [
+          this.templateService.getTextCard('Live Chat', ''),
+          this.templateService.getLiveChatStartingCard()
+        ],
+        newDialogState: 'LIVE_CHAT_ACTIVE',
+        attributes: { mobileNumber, contactName }
+      };
+    } else {
+      return {
+        cards: [
+          this.templateService.getTextCard('Live Chat', ''),
+          this.templateService.getErrorCard('Failed', 'Could not start live chat. Please try again.')
+        ],
+        newDialogState: 'MAIN_MENU'
+      };
+    }
   }
 
   // ==================== LIVE CHAT ====================

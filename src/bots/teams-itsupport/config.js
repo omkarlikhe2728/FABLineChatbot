@@ -27,6 +27,10 @@ class TeamsItSupportConfig {
     this.tenantId = process.env.TEAMS_ITSUPPORT_TENANT_ID || 'teams-itsupport';
     this.botName = process.env.TEAMS_ITSUPPORT_BOT_NAME || 'IT Support Bot';
 
+    // Salesforce v4 Generic API
+    this.salesforceApiUrl = process.env.TEAMS_ITSUPPORT_SALESFORCE_API_URL || 'https://salesforce.lab.bravishma.com';
+    this.salesforceApiTimeout = parseInt(process.env.TEAMS_ITSUPPORT_SALESFORCE_API_TIMEOUT || '15000');
+
     // Welcome Message
     this.welcomeImage = process.env.TEAMS_ITSUPPORT_WELCOME_IMAGE || null;
 
@@ -48,6 +52,7 @@ class TeamsItSupportConfig {
     logger.info(`TeamsItSupportConfig loaded for bot: ${this.botId}`, {
       appId: this.appId?.substring(0, 10) + '...',
       api: this.apiUrl,
+      salesforceApi: this.salesforceApiUrl,
       liveChatApi: this.liveChatApiUrl,
       tenantId: this.tenantId,
     });

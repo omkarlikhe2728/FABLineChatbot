@@ -3,7 +3,7 @@ const ActivityController = require('./controllers/activityController');
 const TeamsService = require('./services/teamsService');
 const SessionService = require('./services/sessionService');
 const DialogManager = require('./services/dialogManager');
-const ItSupportService = require('./services/itSupportService');
+const SalesforceService = require('./services/salesforceService');
 const TemplateService = require('./services/templateService');
 const LiveChatService = require('./services/liveChatService');
 const logger = require('../../common/utils/logger');
@@ -17,12 +17,12 @@ class TeamsItSupportBot {
       this.teamsService = new TeamsService(this.config);
       this.sessionService = new SessionService(this.config);
       this.templateService = new TemplateService(this.config);
-      this.itSupportService = new ItSupportService(this.config);
+      this.salesforceService = new SalesforceService(this.config);
       this.liveChatService = new LiveChatService(this.config);
 
       this.dialogManager = new DialogManager(
         this.sessionService,
-        this.itSupportService,
+        this.salesforceService,
         this.templateService,
         this.liveChatService,
         this.config
