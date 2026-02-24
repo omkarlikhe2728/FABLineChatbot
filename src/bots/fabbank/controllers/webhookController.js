@@ -95,6 +95,18 @@ class WebhookController {
 						event.message,
 					);
 				} else if (event.message.type === "text") {
+			// ✅ NEW: Check if this is the first message from new user
+			// New sessions have no lastActivity timestamp
+			const isFirstMessage = session && session.dialogState === "MAIN_MENU" &&
+				!session.lastActivity; // No activity yet = brand new session
+
+			if (isFirstMessage && event.message.type === "text") {
+				logger.info(`🎉 First message from user ${userId} - sending welcome greeting`);
+				// Send welcome greeting (same as handleFollow) with banner image
+				await this.handleFollow(replyToken, userId);
+				break; // Break early since welcome includes menu
+			}
+
 					// Outside live chat - only handle text messages
 					const messageHandler = require("../handlers/messageHandler");
 					await messageHandler.handleTextMessage(
