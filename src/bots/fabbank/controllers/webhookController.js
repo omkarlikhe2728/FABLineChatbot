@@ -126,9 +126,7 @@ class WebhookController {
 		await sessionService.createSession(userId);
 
 		// Send welcome message with image
-		const bannerImage =
-			"https://www.bankfab.com/-/media/fab-uds/personal/promotions/2025/mclaren-f1-cards-offer/mclaren-homepage-banner-en.jpg?h=670&iar=0&w=1440&hash=AACC95307F56FA4DD937F75AF531DA93";
-
+		const bannerImage = "https://miro.medium.com/v2/resize:fit:780/1*wFlKJPaibnFEx9TYOViJZw.jpeg"
 		const welcomeImageMessage = {
 			type: "image",
 			originalContentUrl: bannerImage,
