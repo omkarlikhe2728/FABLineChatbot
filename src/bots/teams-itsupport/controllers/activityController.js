@@ -85,15 +85,24 @@ class ActivityController {
 
       // Get or create session
       let session = this.sessionService.getSession(userId);
+      const isNewSession = !session;
+
       if (!session) {
         session = this.sessionService.createSession(userId);
-        logger.info(`Created new session for ${userId}`);
+        logger.info(`✨ Created new session for ${userId}`);
       }
 
       // Update conversation reference for proactive messages
       this.sessionService.updateConversationReference(userId, activity);
 
       const { dialogState, attributes } = session;
+
+      // ✅ NEW: Send welcome greeting for first-time users
+      if (isNewSession) {
+        logger.info(`🎉 Sending welcome greeting to new user ${userId} (${displayName})`);
+        const welcomeCard = this.templateService.getWelcomeCard();
+        await this.teamsService.sendAdaptiveCard(activity, welcomeCard, this.context);
+      }
 
       // ✅ NEW: Check if in LIVE_CHAT_ACTIVE to handle all message types
       if (dialogState === 'LIVE_CHAT_ACTIVE' && attachments.length > 0) {
