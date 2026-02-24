@@ -35,7 +35,8 @@
       "Bash(node:*)",
       "Bash(git checkout:*)",
       "Bash(LOG_LEVEL=INFO NODE_ENV=production timeout 15 npm run dev:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "WebFetch(domain:salesforce.lab.bravishma.com)"
     ]
   }
 }

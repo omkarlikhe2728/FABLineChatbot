@@ -13,38 +13,38 @@ class DialogManager {
   /**
    * Main entry point - process message based on current dialog state
    */
-  async processMessage(userId, dialogState, text, actionData, attributes) {
+  async processMessage(userId, dialogState, text, actionData, attributes, displayName) {
     try {
-      logger.debug(`Processing message in state ${dialogState}, text: "${text}"`);
+      logger.debug(`Processing message in state ${dialogState}, text: "${text}", displayName: "${displayName}"`);
 
       let result;
       switch (dialogState) {
         case 'MAIN_MENU':
-          result = await this._handleMainMenu(userId, text, actionData, attributes);
+          result = await this._handleMainMenu(userId, text, actionData, attributes, displayName);
           break;
         case 'SELECT_ISSUE_TYPE':
-          result = await this._handleSelectIssueType(userId, text, actionData, attributes);
+          result = await this._handleSelectIssueType(userId, text, actionData, attributes, displayName);
           break;
         case 'TROUBLESHOOTING':
-          result = await this._handleTroubleshooting(userId, text, actionData, attributes);
+          result = await this._handleTroubleshooting(userId, text, actionData, attributes, displayName);
           break;
         case 'COLLECT_DESCRIPTION':
-          result = await this._handleCollectDescription(userId, text, actionData, attributes);
+          result = await this._handleCollectDescription(userId, text, actionData, attributes, displayName);
           break;
         case 'CONFIRM_TICKET':
-          result = await this._handleConfirmTicket(userId, text, actionData, attributes);
+          result = await this._handleConfirmTicket(userId, text, actionData, attributes, displayName);
           break;
         case 'TICKET_CREATED':
-          result = await this._handleTicketCreated(userId, text, actionData, attributes);
+          result = await this._handleTicketCreated(userId, text, actionData, attributes, displayName);
           break;
         case 'CHECK_TICKET_STATUS':
-          result = await this._handleCheckTicketStatus(userId, text, actionData, attributes);
+          result = await this._handleCheckTicketStatus(userId, text, actionData, attributes, displayName);
           break;
         case 'SHOW_TICKET_STATUS':
-          result = await this._handleShowTicketStatus(userId, text, actionData, attributes);
+          result = await this._handleShowTicketStatus(userId, text, actionData, attributes, displayName);
           break;
         case 'LIVE_CHAT_ACTIVE':
-          result = await this._handleLiveChat(userId, text, actionData, attributes);
+          result = await this._handleLiveChat(userId, text, actionData, attributes, displayName);
           break;
         case 'SESSION_CLOSED':
           result = { cards: [this.templateService.getTextCard('Session Closed', 'Thank you for using IT Support')] };
@@ -65,7 +65,7 @@ class DialogManager {
   }
 
   // ==================== MAIN MENU ====================
-  async _handleMainMenu(userId, text, actionData, attributes) {
+  async _handleMainMenu(userId, text, actionData, attributes, displayName = 'Teams User') {
     const action = actionData?.action || text?.toLowerCase().trim();
     const issueType = actionData?.issueType;
 
@@ -110,7 +110,7 @@ class DialogManager {
       case 'live_chat': {
         const chatResult = await this.liveChatService.startLiveChat(
           userId,
-          'Teams User',
+          displayName,  // ✅ Use actual user name instead of hardcoded 'Teams User'
           'Customer initiated IT support live chat'
         );
 
@@ -152,7 +152,7 @@ class DialogManager {
   }
 
   // ==================== SELECT ISSUE TYPE ====================
-  async _handleSelectIssueType(userId, text, actionData, attributes) {
+  async _handleSelectIssueType(userId, text, actionData, attributes, displayName = 'Teams User') {
     const action = actionData?.action;
     const issueType = actionData?.issueType;
 
@@ -193,7 +193,7 @@ class DialogManager {
   }
 
   // ==================== TROUBLESHOOTING ====================
-  async _handleTroubleshooting(userId, text, actionData, attributes) {
+  async _handleTroubleshooting(userId, text, actionData, attributes, displayName = 'Teams User') {
     const action = actionData?.action;
     const issueType = attributes?.issueType;
 
@@ -243,7 +243,7 @@ class DialogManager {
   }
 
   // ==================== COLLECT DESCRIPTION ====================
-  async _handleCollectDescription(userId, text, actionData, attributes) {
+  async _handleCollectDescription(userId, text, actionData, attributes, displayName = 'Teams User') {
     const action = actionData?.action;
     const issueType = attributes?.issueType;
 
@@ -282,7 +282,7 @@ class DialogManager {
   }
 
   // ==================== CONFIRM TICKET ====================
-  async _handleConfirmTicket(userId, text, actionData, attributes) {
+  async _handleConfirmTicket(userId, text, actionData, attributes, displayName = 'Teams User') {
     const action = actionData?.action;
     const issueType = actionData?.issueType || attributes?.issueType;
     const description = actionData?.description || attributes?.description;
@@ -344,7 +344,7 @@ class DialogManager {
   }
 
   // ==================== TICKET CREATED ====================
-  async _handleTicketCreated(userId, text, actionData, attributes) {
+  async _handleTicketCreated(userId, text, actionData, attributes, displayName = 'Teams User') {
     const action = actionData?.action;
 
     if (action === 'check_ticket_status') {
@@ -374,7 +374,7 @@ class DialogManager {
   }
 
   // ==================== CHECK TICKET STATUS ====================
-  async _handleCheckTicketStatus(userId, text, actionData, attributes) {
+  async _handleCheckTicketStatus(userId, text, actionData, attributes, displayName = 'Teams User') {
     const ticketId = text?.trim().toUpperCase();
 
     if (!ticketId) {
@@ -435,7 +435,7 @@ class DialogManager {
   }
 
   // ==================== SHOW TICKET STATUS ====================
-  async _handleShowTicketStatus(userId, text, actionData, attributes) {
+  async _handleShowTicketStatus(userId, text, actionData, attributes, displayName = 'Teams User') {
     const action = actionData?.action;
 
     if (action === 'check_ticket_status') {
@@ -465,7 +465,7 @@ class DialogManager {
   }
 
   // ==================== LIVE CHAT ====================
-  async _handleLiveChat(userId, input, actionData, attributes) {
+  async _handleLiveChat(userId, input, actionData, attributes, displayName = 'Teams User') {
     try {
       // ✅ NEW: Handle both text (backward compat) and message objects
       let message = input;

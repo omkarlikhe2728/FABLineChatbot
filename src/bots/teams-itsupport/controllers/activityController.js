@@ -72,13 +72,14 @@ class ActivityController {
   async handleMessage(activity) {
     try {
       const userId = activity.from.id;
+      const displayName = activity.from.name || 'Teams User'; // Get real user name from Teams
       const text = activity.text?.trim() || '';
       const actionData = activity.value; // Adaptive Card action data
 
       // ✅ NEW: Extract attachments from Teams message
       const attachments = activity.attachments || [];
 
-      logger.info(`📨 Message from ${userId}: ${text.substring(0, 50)}`);
+      logger.info(`📨 Message from ${userId} (${displayName}): ${text.substring(0, 50)}`);
       logger.debug(`📦 Context available: ${!!this.context}, Service URL: ${this.context?.activity?.serviceUrl}`);
       logger.debug(`📎 Attachments: ${attachments.length}`);
 
@@ -110,7 +111,8 @@ class ActivityController {
           dialogState,
           message,  // ✅ Pass complete object with attachments
           actionData,
-          attributes
+          attributes,
+          displayName  // ✅ Pass real user name from Teams
         );
 
         // Send response cards
@@ -138,7 +140,8 @@ class ActivityController {
           dialogState,
           text,
           actionData,
-          attributes
+          attributes,
+          displayName  // ✅ Pass real user name from Teams
         );
 
         // Send response cards
