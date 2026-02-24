@@ -13,7 +13,7 @@ class SessionStore {
       dialogState: 'MAIN_MENU',
       attributes: initialData,
       createdAt: Date.now(),
-      lastActivity: Date.now(),
+      lastActivity: null, // Set to null for new sessions - used to detect first message
     };
 
     this.sessions.set(sessionKey, session);
