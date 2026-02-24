@@ -467,29 +467,16 @@ class DialogManager {
   // ==================== LIVE CHAT ====================
   async _handleLiveChat(userId, input, actionData, attributes, displayName = 'Teams User') {
     try {
-      // ✅ NEW: Handle both text (backward compat) and message objects
-      let message = input;
+      // input is raw Teams webhook data object (text, image, pdf, video, audio)
+      const rawWebhookData = input;
 
-      // Backward compatibility: convert string to message object
-      if (typeof input === 'string') {
-        message = { type: 'text', text: input };
-      }
+      // Extract text for exit keyword checking (raw webhook data has .text for text messages)
+      const textContent = (typeof input === 'string') ? input : (input?.text || '');
 
-      // Validate message object
-      if (!message || typeof message !== 'object') {
-        logger.warn(`Invalid message format for live chat: ${typeof input}`);
-        return {
-          cards: [this.templateService.getErrorCard('Invalid', 'Invalid message format')]
-        };
-      }
+      logger.info(`Live chat message from user ${userId}, hasText: ${!!textContent}, hasAttachments: ${!!(rawWebhookData?.attachments?.length)}`);
 
-      logger.info(`Live chat ${message.type} message from user ${userId}`);
-
-      // ✅ NEW: Extract text for keyword checking
-      const textContent = message.type === 'text' ? message.text : '';
-
-      // Check for exit keywords (TEXT MESSAGES ONLY)
-      if (message.type === 'text' && textContent) {
+      // Check for exit keywords (text messages only)
+      if (textContent) {
         const lowerText = textContent.toLowerCase().trim();
         const exitKeywords = /\b(exit|quit|end|bye|goodbye|done|disconnect|close|back to menu)\b/i;
 
@@ -504,20 +491,19 @@ class DialogManager {
         }
       }
 
-      // ✅ NEW: Forward entire message object to agent (including attachments)
+      // Forward raw Teams webhook data as-is to middleware
       try {
-        logger.info(`Forwarding ${message.type} message to agent for user ${userId}`);
-        const chatResult = await this.liveChatService.sendMessage(userId, message);
+        logger.info(`Forwarding raw webhook data to agent for user ${userId}`);
+        const chatResult = await this.liveChatService.sendMessage(userId, rawWebhookData, displayName);
 
         if (chatResult.success) {
-          logger.info(`${message.type} message sent to agent successfully`);
-          // No card response - agent will respond directly via middleware
+          logger.info(`Raw webhook data sent to agent successfully`);
           return {
             cards: [],
             newDialogState: 'LIVE_CHAT_ACTIVE'
           };
         } else {
-          logger.warn(`Failed to send ${message.type} message: ${chatResult.error}`);
+          logger.warn(`Failed to send message: ${chatResult.error}`);
           return {
             cards: [
               this.templateService.getErrorCard(
@@ -529,7 +515,7 @@ class DialogManager {
           };
         }
       } catch (error) {
-        logger.error(`Exception forwarding ${message.type} to agent:`, error);
+        logger.error(`Exception forwarding webhook data to agent:`, error);
         return {
           cards: [
             this.templateService.getErrorCard(

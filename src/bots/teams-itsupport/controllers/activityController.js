@@ -1,4 +1,4 @@
-const logger = require('../../../common/utils/logger');
+const logger = require("../../../common/utils/logger");
 
 class ActivityController {
   constructor(teamsService, sessionService, dialogManager, templateService) {
@@ -18,11 +18,15 @@ class ActivityController {
       // Official format should be: https://smba.trafficmanager.net/{region}/ (e.g., /in/, /amer/, /emea/)
       // Not: https://smba.trafficmanager.net/{region}/{tenantId}/
       if (activity.serviceUrl) {
-        const cleanedMatch = activity.serviceUrl.match(/^(https:\/\/smba\.trafficmanager\.net\/[a-z]+\/)/);
+        const cleanedMatch = activity.serviceUrl.match(
+          /^(https:\/\/smba\.trafficmanager\.net\/[a-z]+\/)/,
+        );
         if (cleanedMatch) {
           const cleanedUrl = cleanedMatch[1];
           if (cleanedUrl !== activity.serviceUrl) {
-            logger.warn(`⚠️  Service URL contains extra components. Sanitizing...`);
+            logger.warn(
+              `⚠️  Service URL contains extra components. Sanitizing...`,
+            );
             logger.warn(`   Original: ${activity.serviceUrl}`);
             logger.warn(`   Cleaned:  ${cleanedUrl}`);
             activity.serviceUrl = cleanedUrl;
@@ -31,11 +35,15 @@ class ActivityController {
         }
       }
 
-      logger.debug(`Processing activity type: ${activity.type} from userId: ${activity.from?.id}`);
+      logger.debug(
+        `Processing activity type: ${activity.type} from userId: ${activity.from?.id}`,
+      );
 
       // Also sanitize the context's activity service URL (BotFrameworkAdapter may use this)
       if (context?.activity?.serviceUrl) {
-        const contextMatch = context.activity.serviceUrl.match(/^(https:\/\/smba\.trafficmanager\.net\/[a-z]+\/)/);
+        const contextMatch = context.activity.serviceUrl.match(
+          /^(https:\/\/smba\.trafficmanager\.net\/[a-z]+\/)/,
+        );
         if (contextMatch) {
           const contextCleanedUrl = contextMatch[1];
           if (contextCleanedUrl !== context.activity.serviceUrl) {
@@ -45,17 +53,18 @@ class ActivityController {
         }
       }
 
-      // Store context for use in handlers
+      // Store context and raw webhook data for use in handlers
       this.context = context;
+      this.rawWebhookData = req.body;
 
       switch (activity.type) {
-        case 'message':
+        case "message":
           await this.handleMessage(activity);
           break;
-        case 'conversationUpdate':
+        case "conversationUpdate":
           await this.handleConversationUpdate(activity);
           break;
-        case 'invoke':
+        case "invoke":
           await this.handleInvoke(activity);
           break;
         default:
@@ -64,7 +73,7 @@ class ActivityController {
 
       res.status(200).json({ ok: true });
     } catch (error) {
-      logger.error('Error processing activity', error);
+      logger.error("Error processing activity", error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -72,15 +81,19 @@ class ActivityController {
   async handleMessage(activity) {
     try {
       const userId = activity.from.id;
-      const displayName = activity.from.name || 'Teams User'; // Get real user name from Teams
-      const text = activity.text?.trim() || '';
+      const displayName = activity.from.name || "Teams User"; // Get real user name from Teams
+      const text = activity.text?.trim() || "";
       const actionData = activity.value; // Adaptive Card action data
 
       // ✅ NEW: Extract attachments from Teams message
       const attachments = activity.attachments || [];
 
-      logger.info(`📨 Message from ${userId} (${displayName}): ${text.substring(0, 50)}`);
-      logger.debug(`📦 Context available: ${!!this.context}, Service URL: ${this.context?.activity?.serviceUrl}`);
+      logger.info(
+        `📨 Message from ${userId} (${displayName}): ${text.substring(0, 50)}`,
+      );
+      logger.debug(
+        `📦 Context available: ${!!this.context}, Service URL: ${this.context?.activity?.serviceUrl}`,
+      );
       logger.debug(`📎 Attachments: ${attachments.length}`);
 
       // Get or create session
@@ -95,30 +108,30 @@ class ActivityController {
 
       const { dialogState, attributes } = session;
 
-      // ✅ NEW: Check if in LIVE_CHAT_ACTIVE to handle all message types
-      if (dialogState === 'LIVE_CHAT_ACTIVE' && attachments.length > 0) {
-        logger.info(`🟢 LIVE_CHAT_ACTIVE with ${attachments.length} attachment(s)`);
+      // When in LIVE_CHAT_ACTIVE, forward raw Teams webhook data as-is to middleware
+      if (dialogState === "LIVE_CHAT_ACTIVE") {
+        logger.info(
+          `🟢 LIVE_CHAT_ACTIVE - forwarding raw webhook data to middleware`,
+        );
 
-        // Build complete message object with attachments
-        const messageType = this._detectMessageType(text, attachments);
-        const message = this._buildMessageObject(text, attachments, messageType);
-
-        logger.debug(`Message type detected: ${messageType}`);
-
-        // Process through dialog state machine (pass message object)
+        // Pass raw Teams webhook data object directly (text, image, pdf, video, audio)
         const result = await this.dialogManager.processMessage(
           userId,
           dialogState,
-          message,  // ✅ Pass complete object with attachments
+          this.rawWebhookData, // Raw Teams webhook data as-is
           actionData,
           attributes,
-          displayName  // ✅ Pass real user name from Teams
+          displayName,
         );
 
-        // Send response cards
+        // Send response cards (e.g. live chat ended card)
         if (result.cards && result.cards.length > 0) {
           for (const card of result.cards) {
-            await this.teamsService.sendAdaptiveCard(activity, card, this.context);
+            await this.teamsService.sendAdaptiveCard(
+              activity,
+              card,
+              this.context,
+            );
           }
           logger.debug(`Sent ${result.cards.length} cards to ${userId}`);
         }
@@ -131,7 +144,6 @@ class ActivityController {
         if (result.attributes) {
           this.sessionService.updateAttributes(userId, result.attributes);
         }
-
       } else {
         // Original handling: text-only or Adaptive Card actions
         // Process through dialog state machine
@@ -141,13 +153,17 @@ class ActivityController {
           text,
           actionData,
           attributes,
-          displayName  // ✅ Pass real user name from Teams
+          displayName, // ✅ Pass real user name from Teams
         );
 
         // Send response cards
         if (result.cards && result.cards.length > 0) {
           for (const card of result.cards) {
-            await this.teamsService.sendAdaptiveCard(activity, card, this.context);
+            await this.teamsService.sendAdaptiveCard(
+              activity,
+              card,
+              this.context,
+            );
           }
           logger.debug(`Sent ${result.cards.length} cards to ${userId}`);
         }
@@ -155,7 +171,9 @@ class ActivityController {
         // Update session state
         if (result.newDialogState) {
           this.sessionService.updateDialogState(userId, result.newDialogState);
-          logger.debug(`Updated dialog state to ${result.newDialogState} for ${userId}`);
+          logger.debug(
+            `Updated dialog state to ${result.newDialogState} for ${userId}`,
+          );
         }
 
         if (result.attributes) {
@@ -163,58 +181,17 @@ class ActivityController {
         }
       }
     } catch (error) {
-      logger.error('Error in handleMessage', error);
+      logger.error("Error in handleMessage", error);
       // Send error response to user
-      await this.teamsService.sendAdaptiveCard(activity,
-        this.templateService.getErrorCard('Error', 'An error occurred. Please try again.'),
-        this.context
+      await this.teamsService.sendAdaptiveCard(
+        activity,
+        this.templateService.getErrorCard(
+          "Error",
+          "An error occurred. Please try again.",
+        ),
+        this.context,
       );
     }
-  }
-
-  /**
-   * Detect message type based on content
-   * @private
-   */
-  _detectMessageType(text, attachments) {
-    if (attachments && attachments.length > 0) {
-      const attachment = attachments[0];
-      const contentType = attachment.contentType || '';
-
-      if (contentType.startsWith('image/')) return 'image';
-      if (contentType.startsWith('video/')) return 'video';
-      if (contentType.startsWith('audio/')) return 'audio';
-      if (contentType.includes('document') ||
-          contentType.includes('pdf') ||
-          contentType.includes('word') ||
-          contentType.includes('sheet')) {
-        return 'document';
-      }
-      return 'file';
-    }
-    return 'text';
-  }
-
-  /**
-   * Build message object similar to LINE format
-   * @private
-   */
-  _buildMessageObject(text, attachments, messageType) {
-    const message = {
-      type: messageType,
-      text: text || '',
-      attachments: attachments || []
-    };
-
-    // Add type-specific data
-    if (messageType !== 'text' && attachments.length > 0) {
-      const attachment = attachments[0];
-      message.contentUrl = attachment.contentUrl;
-      message.name = attachment.name;
-      message.contentType = attachment.contentType;
-    }
-
-    return message;
   }
 
   async handleConversationUpdate(activity) {
@@ -235,7 +212,11 @@ class ActivityController {
 
           // Send welcome card
           const welcomeCard = this.templateService.getWelcomeCard();
-          await this.teamsService.sendAdaptiveCard(activity, welcomeCard, this.context);
+          await this.teamsService.sendAdaptiveCard(
+            activity,
+            welcomeCard,
+            this.context,
+          );
         }
       }
 
@@ -248,7 +229,7 @@ class ActivityController {
         }
       }
     } catch (error) {
-      logger.error('Error in handleConversationUpdate', error);
+      logger.error("Error in handleConversationUpdate", error);
     }
   }
 
@@ -257,7 +238,7 @@ class ActivityController {
       logger.debug(`Invoke activity: ${activity.name}`);
       // Handle task module or other invoke activities if needed
     } catch (error) {
-      logger.error('Error in handleInvoke', error);
+      logger.error("Error in handleInvoke", error);
     }
   }
 }

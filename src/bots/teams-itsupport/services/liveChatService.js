@@ -81,55 +81,41 @@ class LiveChatService {
 
   /**
    * Send message during active live chat
-   * Supports all message types: text, image, video, audio, document, file
+   * Forwards raw Teams webhook data as-is to middleware
+   * @param {string} userId - Teams user ID
+   * @param {object} rawWebhookData - Raw Teams webhook data object (text, image, pdf, video, audio)
+   * @param {string} displayName - User's display name from Teams (optional, falls back to generated name)
    */
-  async sendMessage(userId, message) {
+  async sendMessage(userId, rawWebhookData, displayName) {
     try {
-      // ✅ NEW: Handle backward compatibility - convert string to message object
-      if (typeof message === 'string') {
-        message = { type: 'text', text: message };
-      }
-
-      // Validate message object
-      if (!message || typeof message !== 'object') {
-        logger.error(`Invalid message object for user ${userId}`, message);
-        return {
-          success: false,
-          error: 'Invalid message format'
-        };
-      }
-
-      const messageType = message.type || 'text';
-      logger.info(`Sending ${messageType} live chat message for user ${userId}`);
-
       const endpoint = `${this.baseUrl}api/teams-itsupport-direct/live-chat/message/${this.tenantId}`;
 
-      // ✅ NEW: Get display name with proper truncation
-      const displayName = await this._getDisplayName(userId);
+      // Use provided displayName or generate one, truncate to max 70 chars (Avaya requirement)
+      if (!displayName) {
+        displayName = await this._getDisplayName(userId);
+      }
+      if (displayName.length > 70) {
+        displayName = displayName.substring(0, 67) + '...';
+      }
 
-      // ✅ NEW: Build payload with complete message object
+      // Send raw Teams webhook data as-is in the message field
       const payload = {
         userId,
-        displayName,  // Truncated to max 70 chars
+        displayName,
         channel: 'teams',
-        message: message  // ENTIRE object - can include attachments
+        message: rawWebhookData  // Raw Teams webhook data object as-is
       };
 
+      logger.info(`Sending raw webhook data to middleware for user ${userId}`);
       logger.debug(`Endpoint: ${endpoint}`);
-      logger.debug(`Sending ${messageType} message:`, {
-        userId,
-        displayName,
-        messageType,
-        hasAttachments: message.attachments?.length > 0,
-        hasContentUrl: !!message.contentUrl
-      });
+      logger.debug(`Payload keys: userId, displayName="${displayName}", channel=teams, message keys: [${Object.keys(rawWebhookData || {}).join(', ')}]`);
 
       const response = await this.client.post(endpoint, payload);
 
-      logger.info(`✅ ${messageType} message sent successfully for user ${userId}`);
+      logger.info(`✅ Raw webhook data sent successfully for user ${userId}`);
       return { success: true, data: response.data };
     } catch (error) {
-      logger.error(`Failed to send ${message?.type || 'unknown'} message for user ${userId}`, {
+      logger.error(`Failed to send message for user ${userId}`, {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data

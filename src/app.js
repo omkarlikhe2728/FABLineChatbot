@@ -279,6 +279,7 @@ app.post('/api/teams/test-send', async (req, res) => {
 // Format: POST /api/teams/itsupport/webhook
 app.post('/api/teams/itsupport/webhook', async (req, res) => {
   try {
+    console.log('teamsWebhookReq=', JSON.stringify(req.body));
     const bot = BotRegistry.getBot('teams-itsupport');
 
     if (!bot) {
