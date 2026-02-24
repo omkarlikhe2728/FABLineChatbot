@@ -202,6 +202,7 @@ class TeamsService {
   /**
    * Send a proactive message via stored conversation reference
    * Called from middleware when agent replies
+   * ✅ NEW: Supports attachments (images, documents, etc.)
    */
   async sendProactiveMessage(conversationReference, text, attachments = []) {
     try {
@@ -211,7 +212,7 @@ class TeamsService {
       }
 
       logger.info(`📤 Sending proactive message from agent: ${text.substring(0, 50)}`);
-      logger.debug(`Using conversation reference:`, {
+      logger.debug(`Attachments: ${attachments.length}, Using conversation reference:`, {
         serviceUrl: conversationReference.serviceUrl,
         conversationId: conversationReference.conversation?.id
       });
@@ -235,7 +236,7 @@ class TeamsService {
       const endpoint = `${serviceUrl}v3/conversations/${conversationId}/activities`;
       logger.debug(`Teams API endpoint: ${endpoint}`);
 
-      // Prepare the message payload
+      // ✅ NEW: Build Teams-compatible message with attachments
       const axios = require('axios');
       const payload = {
         type: 'message',
@@ -246,8 +247,32 @@ class TeamsService {
         }
       };
 
+      // ✅ NEW: Add attachments if present
       if (attachments && attachments.length > 0) {
-        payload.attachments = attachments;
+        logger.info(`📎 Adding ${attachments.length} attachment(s) to agent response`);
+
+        // Build Teams-compatible attachment format
+        payload.attachments = attachments.map(att => {
+          // If attachment already has Teams format, use as-is
+          if (att.contentType && att.contentUrl) {
+            return {
+              contentType: att.contentType,
+              contentUrl: att.contentUrl,
+              name: att.name || att.fileName || 'attachment'
+            };
+          }
+          // Otherwise convert from Avaya format
+          return {
+            contentType: att.contentType || 'application/octet-stream',
+            contentUrl: att.url || att.contentUrl,
+            name: att.fileName || att.name || 'attachment'
+          };
+        });
+
+        logger.debug(`Attachments formatted for Teams:`, {
+          count: payload.attachments.length,
+          types: payload.attachments.map(a => a.contentType)
+        });
       }
 
       logger.debug(`Payload prepared, making API call...`);
@@ -270,6 +295,39 @@ class TeamsService {
         statusCode: error.response?.status,
         responseData: error.response?.data
       });
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * ✅ NEW: Handle agent response with attachments from middleware
+   * Called when Avaya agent sends response back to Teams user
+   */
+  async handleAgentResponse(userId, text, attachments = []) {
+    try {
+      logger.info(`📥 Processing agent response for Teams user ${userId}`);
+      logger.debug(`Text: "${text.substring(0, 50)}...", Attachments: ${attachments.length}`);
+
+      // Get conversation reference for this user
+      const conversationRef = this.sessionService?.getConversationReference(userId);
+
+      if (!conversationRef) {
+        logger.error(`No conversation reference for user ${userId}`);
+        return { success: false, error: 'User session not found' };
+      }
+
+      // Send via proactive messaging
+      const result = await this.sendProactiveMessage(conversationRef, text, attachments);
+
+      if (result.success) {
+        logger.info(`✅ Agent response sent to Teams user ${userId}`);
+        return result;
+      } else {
+        logger.error(`Failed to send agent response: ${result.error}`);
+        return result;
+      }
+    } catch (error) {
+      logger.error(`Error handling agent response for user ${userId}`, error);
       return { success: false, error: error.message };
     }
   }

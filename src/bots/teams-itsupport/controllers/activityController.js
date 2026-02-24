@@ -75,8 +75,12 @@ class ActivityController {
       const text = activity.text?.trim() || '';
       const actionData = activity.value; // Adaptive Card action data
 
+      // ✅ NEW: Extract attachments from Teams message
+      const attachments = activity.attachments || [];
+
       logger.info(`📨 Message from ${userId}: ${text.substring(0, 50)}`);
       logger.debug(`📦 Context available: ${!!this.context}, Service URL: ${this.context?.activity?.serviceUrl}`);
+      logger.debug(`📎 Attachments: ${attachments.length}`);
 
       // Get or create session
       let session = this.sessionService.getSession(userId);
@@ -90,31 +94,70 @@ class ActivityController {
 
       const { dialogState, attributes } = session;
 
-      // Process through dialog state machine
-      const result = await this.dialogManager.processMessage(
-        userId,
-        dialogState,
-        text,
-        actionData,
-        attributes
-      );
+      // ✅ NEW: Check if in LIVE_CHAT_ACTIVE to handle all message types
+      if (dialogState === 'LIVE_CHAT_ACTIVE' && attachments.length > 0) {
+        logger.info(`🟢 LIVE_CHAT_ACTIVE with ${attachments.length} attachment(s)`);
 
-      // Send response cards
-      if (result.cards && result.cards.length > 0) {
-        for (const card of result.cards) {
-          await this.teamsService.sendAdaptiveCard(activity, card, this.context);
+        // Build complete message object with attachments
+        const messageType = this._detectMessageType(text, attachments);
+        const message = this._buildMessageObject(text, attachments, messageType);
+
+        logger.debug(`Message type detected: ${messageType}`);
+
+        // Process through dialog state machine (pass message object)
+        const result = await this.dialogManager.processMessage(
+          userId,
+          dialogState,
+          message,  // ✅ Pass complete object with attachments
+          actionData,
+          attributes
+        );
+
+        // Send response cards
+        if (result.cards && result.cards.length > 0) {
+          for (const card of result.cards) {
+            await this.teamsService.sendAdaptiveCard(activity, card, this.context);
+          }
+          logger.debug(`Sent ${result.cards.length} cards to ${userId}`);
         }
-        logger.debug(`Sent ${result.cards.length} cards to ${userId}`);
-      }
 
-      // Update session state
-      if (result.newDialogState) {
-        this.sessionService.updateDialogState(userId, result.newDialogState);
-        logger.debug(`Updated dialog state to ${result.newDialogState} for ${userId}`);
-      }
+        // Update session state
+        if (result.newDialogState) {
+          this.sessionService.updateDialogState(userId, result.newDialogState);
+        }
 
-      if (result.attributes) {
-        this.sessionService.updateAttributes(userId, result.attributes);
+        if (result.attributes) {
+          this.sessionService.updateAttributes(userId, result.attributes);
+        }
+
+      } else {
+        // Original handling: text-only or Adaptive Card actions
+        // Process through dialog state machine
+        const result = await this.dialogManager.processMessage(
+          userId,
+          dialogState,
+          text,
+          actionData,
+          attributes
+        );
+
+        // Send response cards
+        if (result.cards && result.cards.length > 0) {
+          for (const card of result.cards) {
+            await this.teamsService.sendAdaptiveCard(activity, card, this.context);
+          }
+          logger.debug(`Sent ${result.cards.length} cards to ${userId}`);
+        }
+
+        // Update session state
+        if (result.newDialogState) {
+          this.sessionService.updateDialogState(userId, result.newDialogState);
+          logger.debug(`Updated dialog state to ${result.newDialogState} for ${userId}`);
+        }
+
+        if (result.attributes) {
+          this.sessionService.updateAttributes(userId, result.attributes);
+        }
       }
     } catch (error) {
       logger.error('Error in handleMessage', error);
@@ -124,6 +167,51 @@ class ActivityController {
         this.context
       );
     }
+  }
+
+  /**
+   * Detect message type based on content
+   * @private
+   */
+  _detectMessageType(text, attachments) {
+    if (attachments && attachments.length > 0) {
+      const attachment = attachments[0];
+      const contentType = attachment.contentType || '';
+
+      if (contentType.startsWith('image/')) return 'image';
+      if (contentType.startsWith('video/')) return 'video';
+      if (contentType.startsWith('audio/')) return 'audio';
+      if (contentType.includes('document') ||
+          contentType.includes('pdf') ||
+          contentType.includes('word') ||
+          contentType.includes('sheet')) {
+        return 'document';
+      }
+      return 'file';
+    }
+    return 'text';
+  }
+
+  /**
+   * Build message object similar to LINE format
+   * @private
+   */
+  _buildMessageObject(text, attachments, messageType) {
+    const message = {
+      type: messageType,
+      text: text || '',
+      attachments: attachments || []
+    };
+
+    // Add type-specific data
+    if (messageType !== 'text' && attachments.length > 0) {
+      const attachment = attachments[0];
+      message.contentUrl = attachment.contentUrl;
+      message.name = attachment.name;
+      message.contentType = attachment.contentType;
+    }
+
+    return message;
   }
 
   async handleConversationUpdate(activity) {

@@ -465,42 +465,86 @@ class DialogManager {
   }
 
   // ==================== LIVE CHAT ====================
-  async _handleLiveChat(userId, text, actionData, attributes) {
-    if (!text) {
-      return { cards: [] };
-    }
+  async _handleLiveChat(userId, input, actionData, attributes) {
+    try {
+      // ✅ NEW: Handle both text (backward compat) and message objects
+      let message = input;
 
-    const message = text.toLowerCase().trim();
+      // Backward compatibility: convert string to message object
+      if (typeof input === 'string') {
+        message = { type: 'text', text: input };
+      }
 
-    // Check for exit keywords
-    const exitKeywords = ['exit', 'quit', 'end', 'bye', 'goodbye', 'done'];
-    if (exitKeywords.some(kw => message.includes(kw))) {
-      const endResult = await this.liveChatService.endLiveChat(userId);
+      // Validate message object
+      if (!message || typeof message !== 'object') {
+        logger.warn(`Invalid message format for live chat: ${typeof input}`);
+        return {
+          cards: [this.templateService.getErrorCard('Invalid', 'Invalid message format')]
+        };
+      }
+
+      logger.info(`Live chat ${message.type} message from user ${userId}`);
+
+      // ✅ NEW: Extract text for keyword checking
+      const textContent = message.type === 'text' ? message.text : '';
+
+      // Check for exit keywords (TEXT MESSAGES ONLY)
+      if (message.type === 'text' && textContent) {
+        const lowerText = textContent.toLowerCase().trim();
+        const exitKeywords = /\b(exit|quit|end|bye|goodbye|done|disconnect|close|back to menu)\b/i;
+
+        if (exitKeywords.test(lowerText)) {
+          const endResult = await this.liveChatService.endLiveChat(userId);
+          logger.info(`Live chat ended for user ${userId} (user initiated)`);
+
+          return {
+            cards: [this.templateService.getLiveChatEndedCard()],
+            newDialogState: 'MAIN_MENU'
+          };
+        }
+      }
+
+      // ✅ NEW: Forward entire message object to agent (including attachments)
+      try {
+        logger.info(`Forwarding ${message.type} message to agent for user ${userId}`);
+        const chatResult = await this.liveChatService.sendMessage(userId, message);
+
+        if (chatResult.success) {
+          logger.info(`${message.type} message sent to agent successfully`);
+          // No card response - agent will respond directly via middleware
+          return {
+            cards: [],
+            newDialogState: 'LIVE_CHAT_ACTIVE'
+          };
+        } else {
+          logger.warn(`Failed to send ${message.type} message: ${chatResult.error}`);
+          return {
+            cards: [
+              this.templateService.getErrorCard(
+                'Failed',
+                'Could not send your message. Please try again.'
+              )
+            ],
+            newDialogState: 'LIVE_CHAT_ACTIVE'
+          };
+        }
+      } catch (error) {
+        logger.error(`Exception forwarding ${message.type} to agent:`, error);
+        return {
+          cards: [
+            this.templateService.getErrorCard(
+              'Error',
+              'An error occurred while sending your message.'
+            )
+          ],
+          newDialogState: 'LIVE_CHAT_ACTIVE'
+        };
+      }
+    } catch (error) {
+      logger.error(`Error in _handleLiveChat for user ${userId}`, error);
       return {
-        cards: [this.templateService.getLiveChatEndedCard()],
+        cards: [this.templateService.getErrorCard('Error', 'An unexpected error occurred.')],
         newDialogState: 'MAIN_MENU'
-      };
-    }
-
-    // Forward message to live chat
-    const chatResult = await this.liveChatService.sendMessage(userId, {
-      type: 'text',
-      text: text
-    });
-
-    if (chatResult.success) {
-      logger.debug(`Live chat message forwarded for user ${userId}`);
-      // No card response for live chat messages - agent will respond directly
-      return {
-        cards: [],
-        newDialogState: 'LIVE_CHAT_ACTIVE'
-      };
-    } else {
-      logger.error(`Failed to send live chat message for user ${userId}`);
-      // Stay in live chat but show error
-      return {
-        cards: [this.templateService.getErrorCard('Failed', 'Could not send message. Please try again.')],
-        newDialogState: 'LIVE_CHAT_ACTIVE'
       };
     }
   }
