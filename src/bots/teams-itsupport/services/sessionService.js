@@ -19,9 +19,9 @@ class SessionService {
         {
           dialogState: 'MAIN_MENU',
           conversationReference: null,
+          sessionTimeout: this.sessionTimeout,
           ...initialData
-        },
-        this.sessionTimeout
+        }
       );
       logger.info(`Created session for user ${userId}`);
       return session;
