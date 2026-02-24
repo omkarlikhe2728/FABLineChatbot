@@ -86,6 +86,17 @@ class WebhookController {
 					? session.dialogState
 					: "MAIN_MENU";
 
+				// ✅ NEW: Check if this is the first message from new user
+				const isFirstMessage = session && session.dialogState === "MAIN_MENU" &&
+					session.messageCount === 0; // New session, no messages processed yet
+
+				if (isFirstMessage && event.message.type === "text") {
+					logger.info(`🎉 First message from user ${userId} - sending welcome greeting`);
+					// Send welcome greeting (same as handleFollow)
+					await this.handleFollow(replyToken, userId);
+					break; // Break early since welcome includes menu
+				}
+
 				if (currentState === "LIVE_CHAT_ACTIVE") {
 					// In live chat - forward ALL message types
 					const messageHandler = require("../handlers/messageHandler");
