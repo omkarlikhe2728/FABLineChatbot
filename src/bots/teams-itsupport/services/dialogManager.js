@@ -413,17 +413,26 @@ class DialogManager {
       const caseResult = await this.salesforceService.createCase(caseParams);
 
       if (caseResult.success) {
+        // Fetch full case details to get CaseNumber
+        let caseData = caseResult.data;
+        if (caseData?.Id) {
+          const fullCase = await this.salesforceService.getCaseByCaseId(caseData.Id);
+          if (fullCase.success) {
+            caseData = fullCase.data;
+          }
+        }
+
         return {
           cards: [
             this.templateService.getTextCard('Create Case', ''),
-            this.templateService.getCaseCreatedCard(caseResult.data, {
+            this.templateService.getCaseCreatedCard(caseData, {
               issueType,
               priority,
               contactName: attributes?.contactName || 'N/A'
             })
           ],
           newDialogState: 'TICKET_CREATED',
-          attributes: { caseData: caseResult.data }
+          attributes: { caseData }
         };
       } else {
         return {
@@ -529,12 +538,12 @@ class DialogManager {
       };
     }
 
-    // Validate case number format
+    // Validate case number or Salesforce ID format
     if (!this.salesforceService.validateCaseNumberFormat(caseNumber)) {
       return {
         cards: [
           this.templateService.getErrorCard('Invalid Format',
-            'Case number must be a numeric value (e.g., 00001064)'),
+            'Please enter a valid case number (e.g., 00001064) or case ID.'),
           this.templateService.getTicketIdInputCard()
         ],
         newDialogState: 'CHECK_TICKET_STATUS',
@@ -542,8 +551,11 @@ class DialogManager {
       };
     }
 
-    // Fetch case from Salesforce
-    const caseResult = await this.salesforceService.getCaseByCaseNumber(caseNumber);
+    // Fetch case from Salesforce - use appropriate lookup method
+    const isSfId = this.salesforceService.isSalesforceId(caseNumber);
+    const caseResult = isSfId
+      ? await this.salesforceService.getCaseByCaseId(caseNumber)
+      : await this.salesforceService.getCaseByCaseNumber(caseNumber);
 
     if (caseResult.success) {
       return {

@@ -111,6 +111,38 @@ class SalesforceService {
   }
 
   /**
+   * Get a single case by its Salesforce ID (e.g., 500gK00000gJxNZQA0)
+   */
+  async getCaseByCaseId(caseId) {
+    try {
+      logger.info(`Looking up case by ID: ${caseId}`);
+
+      const response = await this.client.get('/cases', {
+        params: { caseId }
+      });
+
+      if (response.data?.success && response.data?.data) {
+        const cases = Array.isArray(response.data.data) ? response.data.data : [response.data.data];
+        if (cases.length > 0) {
+          logger.info(`Case found by ID: ${cases[0].CaseNumber}`);
+          return { success: true, data: cases[0] };
+        }
+      }
+
+      return { success: false, notFound: true, error: 'Case not found' };
+    } catch (error) {
+      if (error.response?.status === 404) {
+        return { success: false, notFound: true, error: 'Case not found' };
+      }
+      logger.error(`Failed to look up case by ID ${caseId}`, {
+        message: error.message,
+        status: error.response?.status
+      });
+      return { success: false, error: error.message || 'Failed to look up case' };
+    }
+  }
+
+  /**
    * Get cases by mobile number (contact lookup + cases fetch in one call)
    */
   async getCasesByMobile(mobileNumber) {
@@ -220,11 +252,22 @@ class SalesforceService {
   }
 
   /**
-   * Validate Salesforce case number format (e.g., 00001064)
+   * Validate Salesforce case number format (e.g., 00001064) or Salesforce ID (e.g., 500gK00000gJxNZQA0)
    */
   validateCaseNumberFormat(caseNumber) {
     if (!caseNumber) return false;
-    return /^\d{5,10}$/.test(caseNumber.trim());
+    const trimmed = caseNumber.trim();
+    // Accept numeric case number (00001064) or Salesforce 18-char ID (500gK00000gJxNZQA0)
+    return /^\d{5,10}$/.test(trimmed) || /^[a-zA-Z0-9]{15,18}$/.test(trimmed);
+  }
+
+  /**
+   * Check if input is a Salesforce ID (alphanumeric 15-18 chars) vs numeric case number
+   */
+  isSalesforceId(input) {
+    if (!input) return false;
+    const trimmed = input.trim();
+    return /^[a-zA-Z0-9]{15,18}$/.test(trimmed) && !/^\d+$/.test(trimmed);
   }
 
   /**

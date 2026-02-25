@@ -436,14 +436,14 @@ class TemplateService {
         },
         {
           "type": "TextBlock",
-          "text": "Enter your case number to check the status:",
+          "text": "Enter your case number or case ID to check the status:",
           "wrap": true,
           "spacing": "medium",
           "size": "default"
         },
         {
           "type": "TextBlock",
-          "text": "Format: e.g., 00001064",
+          "text": "Format: e.g., 00001064 or 500gK00000gJxNZQA0",
           "wrap": true,
           "spacing": "small",
           "size": "medium",
@@ -833,9 +833,11 @@ class TemplateService {
       return this.getErrorCard('Error', 'Failed to create case');
     }
 
-    const items = [
-      { label: "Case ID", value: caseData.Id }
-    ];
+    const items = [];
+    if (caseData.CaseNumber) {
+      items.push({ label: "Case Number", value: caseData.CaseNumber });
+    }
+    items.push({ label: "Case ID", value: caseData.Id });
     if (details.issueType) {
       const issueLabels = {
         'network': 'Network Issue',
