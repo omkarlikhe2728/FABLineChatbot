@@ -637,6 +637,61 @@ class TemplateService {
   }
 
   /**
+   * Contact not found card - asks user to re-enter mobile or go back
+   */
+  getContactNotFoundCard(mobileNumber) {
+    return {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": [
+        {
+          "type": "Container",
+          "style": "attention",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Contact Not Found",
+              "size": "medium",
+              "weight": "bolder",
+              "color": "dark"
+            }
+          ]
+        },
+        {
+          "type": "TextBlock",
+          "text": `No contact found for **${mobileNumber}** in our system.`,
+          "wrap": true,
+          "spacing": "medium",
+          "size": "default"
+        },
+        {
+          "type": "TextBlock",
+          "text": "A valid contact is required to submit a case. Please check your number and try again, or contact your administrator.",
+          "wrap": true,
+          "spacing": "small",
+          "size": "default"
+        },
+        {
+          "type": "TextBlock",
+          "text": "Please type a different mobile number or go back to the menu.",
+          "wrap": true,
+          "spacing": "medium",
+          "size": "default",
+          "color": "accent"
+        }
+      ],
+      "actions": [
+        {
+          "type": "Action.Submit",
+          "title": "⬅️ Back to Menu",
+          "data": { "action": "back_to_menu" }
+        }
+      ]
+    };
+  }
+
+  /**
    * Contact found display card
    */
   getContactFoundCard(contact) {

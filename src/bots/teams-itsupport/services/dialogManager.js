@@ -258,15 +258,13 @@ class DialogManager {
 
     if (!contactResult.success) {
       if (contactResult.notFound) {
-        // Contact not found - still allow case creation with just MobileNumber
+        // Contact not found - cannot create case without a Salesforce contact
         return {
           cards: [
-            this.templateService.getTextCard('Contact Not Found',
-              `No contact found for ${mobileNumber}. You can still submit a case.`),
-            this.templateService.getDescriptionInputCard(attributes?.issueType)
+            this.templateService.getContactNotFoundCard(mobileNumber)
           ],
-          newDialogState: 'COLLECT_DESCRIPTION',
-          attributes: { ...attributes, mobileNumber, contactId: null, accountId: null, contactName: null }
+          newDialogState: 'COLLECT_MOBILE',
+          attributes: { ...attributes }
         };
       }
       // API error
