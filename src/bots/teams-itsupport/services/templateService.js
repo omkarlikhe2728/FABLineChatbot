@@ -619,7 +619,7 @@ class TemplateService {
         },
         {
           "type": "TextBlock",
-          "text": "Please type your mobile number (e.g., 919890903580 or +919890903580)",
+          "text": "Please type your mobile number (e.g., 919890903580)",
           "wrap": true,
           "spacing": "medium",
           "size": "default",
@@ -664,7 +664,7 @@ class TemplateService {
               "text": "Contact Found",
               "size": "medium",
               "weight": "bolder",
-              "color": "light"
+              "color": "dark"
             }
           ]
         },
