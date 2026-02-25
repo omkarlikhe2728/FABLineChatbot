@@ -286,22 +286,22 @@ class TemplateService {
 
     const info = priorityInfo[issueType];
 
-    const facts = [
-      { "name": "Issue Type", "value": issueLabels[issueType] || issueType },
-      { "name": "Priority", "value": info?.priority || 'MEDIUM' },
-      { "name": "ETA", "value": info?.eta || 'TBD' }
+    const items = [
+      { label: "Issue Type", value: issueLabels[issueType] || issueType },
+      { label: "Priority", value: info?.priority || 'MEDIUM' },
+      { label: "ETA", value: info?.eta || 'TBD' }
     ];
 
     if (contactName) {
-      facts.push({ "name": "Contact", "value": contactName });
+      items.push({ label: "Contact", value: contactName });
     }
     if (mobileNumber) {
-      facts.push({ "name": "Mobile", "value": mobileNumber });
+      items.push({ label: "Mobile", value: mobileNumber });
     }
 
-    facts.push({
-      "name": "Description",
-      "value": description.substring(0, 50) + (description.length > 50 ? '...' : '')
+    items.push({
+      label: "Description",
+      value: description.substring(0, 50) + (description.length > 50 ? '...' : '')
     });
 
     return {
@@ -318,12 +318,12 @@ class TemplateService {
         {
           "type": "Container",
           "style": "emphasis",
-          "items": [
-            {
-              "type": "FactSet",
-              "facts": facts
-            }
-          ]
+          "items": items.map(item => ({
+            "type": "TextBlock",
+            "text": `**${item.label}:** ${item.value}`,
+            "wrap": true,
+            "spacing": "small"
+          }))
         },
         {
           "type": "TextBlock",
@@ -695,14 +695,14 @@ class TemplateService {
    * Contact found display card
    */
   getContactFoundCard(contact) {
-    const facts = [
-      { "name": "Name", "value": contact.Name || 'N/A' }
+    const items = [
+      { label: "Name", value: contact.Name || 'N/A' }
     ];
     if (contact.Email) {
-      facts.push({ "name": "Email", "value": contact.Email });
+      items.push({ label: "Email", value: contact.Email });
     }
     if (contact.MobilePhone) {
-      facts.push({ "name": "Mobile", "value": contact.MobilePhone });
+      items.push({ label: "Mobile", value: contact.MobilePhone });
     }
 
     return {
@@ -723,11 +723,12 @@ class TemplateService {
             }
           ]
         },
-        {
-          "type": "FactSet",
-          "facts": facts,
-          "spacing": "medium"
-        }
+        ...items.map(item => ({
+          "type": "TextBlock",
+          "text": `**${item.label}:** ${item.value}`,
+          "wrap": true,
+          "spacing": "small"
+        }))
       ]
     };
   }
@@ -765,13 +766,28 @@ class TemplateService {
         "style": "emphasis",
         "items": [
           {
-            "type": "FactSet",
-            "facts": [
-              { "name": "Case #", "value": c.CaseNumber || 'N/A' },
-              { "name": "Subject", "value": c.Subject || 'N/A' },
-              { "name": "Status", "value": c.Status || 'N/A' },
-              { "name": "Priority", "value": c.Priority || 'N/A' }
-            ]
+            "type": "TextBlock",
+            "text": `**Case #:** ${c.CaseNumber || 'N/A'}`,
+            "wrap": true,
+            "spacing": "small"
+          },
+          {
+            "type": "TextBlock",
+            "text": `**Subject:** ${c.Subject || 'N/A'}`,
+            "wrap": true,
+            "spacing": "small"
+          },
+          {
+            "type": "TextBlock",
+            "text": `**Status:** ${c.Status || 'N/A'}`,
+            "wrap": true,
+            "spacing": "small"
+          },
+          {
+            "type": "TextBlock",
+            "text": `**Priority:** ${c.Priority || 'N/A'}`,
+            "wrap": true,
+            "spacing": "small"
           }
         ]
       });
@@ -817,8 +833,8 @@ class TemplateService {
       return this.getErrorCard('Error', 'Failed to create case');
     }
 
-    const facts = [
-      { "name": "Case ID", "value": caseData.Id }
+    const items = [
+      { label: "Case ID", value: caseData.Id }
     ];
     if (details.issueType) {
       const issueLabels = {
@@ -826,13 +842,13 @@ class TemplateService {
         'broadband': 'Broadband Issue',
         'agent_connectivity': 'Agent Connectivity Issue'
       };
-      facts.push({ "name": "Issue Type", "value": issueLabels[details.issueType] || details.issueType });
+      items.push({ label: "Issue Type", value: issueLabels[details.issueType] || details.issueType });
     }
     if (details.priority) {
-      facts.push({ "name": "Priority", "value": details.priority });
+      items.push({ label: "Priority", value: details.priority });
     }
     if (details.contactName) {
-      facts.push({ "name": "Contact", "value": details.contactName });
+      items.push({ label: "Contact", value: details.contactName });
     }
 
     return {
@@ -859,11 +875,12 @@ class TemplateService {
           "wrap": true,
           "spacing": "medium"
         },
-        {
-          "type": "FactSet",
-          "facts": facts,
-          "spacing": "medium"
-        },
+        ...items.map(item => ({
+          "type": "TextBlock",
+          "text": `**${item.label}:** ${item.value}`,
+          "wrap": true,
+          "spacing": "small"
+        })),
         {
           "type": "TextBlock",
           "text": "📌 Save your Case ID for reference",
@@ -896,16 +913,21 @@ class TemplateService {
       return this.getErrorCard('Error', 'Unable to display case status');
     }
 
-    const facts = [
-      { "name": "Case #", "value": caseData.CaseNumber || 'N/A' },
-      { "name": "Subject", "value": caseData.Subject || 'N/A' },
-      { "name": "Status", "value": caseData.Status || 'N/A' },
-      { "name": "Priority", "value": caseData.Priority || 'N/A' },
-      { "name": "Origin", "value": caseData.Origin || 'N/A' }
+    const items = [
+      { label: "Case #", value: caseData.CaseNumber || 'N/A' },
+      { label: "Subject", value: caseData.Subject || 'N/A' },
+      { label: "Status", value: caseData.Status || 'N/A' },
+      { label: "Priority", value: caseData.Priority || 'N/A' },
+      { label: "Origin", value: caseData.Origin || 'N/A' }
     ];
 
     if (caseData.CreatedDate) {
-      facts.push({ "name": "Created", "value": new Date(caseData.CreatedDate).toLocaleDateString() });
+      items.push({ label: "Created", value: new Date(caseData.CreatedDate).toLocaleDateString() });
+    }
+
+    if (caseData.Description) {
+      const desc = caseData.Description.substring(0, 200) + (caseData.Description.length > 200 ? '...' : '');
+      items.push({ label: "Description", value: desc });
     }
 
     const body = [
@@ -915,22 +937,13 @@ class TemplateService {
         "size": "large",
         "weight": "bolder"
       },
-      {
-        "type": "FactSet",
-        "facts": facts,
-        "spacing": "medium"
-      }
-    ];
-
-    if (caseData.Description) {
-      body.push({
+      ...items.map(item => ({
         "type": "TextBlock",
-        "text": `Description: ${caseData.Description.substring(0, 200)}${caseData.Description.length > 200 ? '...' : ''}`,
+        "text": `**${item.label}:** ${item.value}`,
         "wrap": true,
-        "spacing": "medium",
-        "size": "default"
-      });
-    }
+        "spacing": "small"
+      }))
+    ];
 
     return {
       "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
