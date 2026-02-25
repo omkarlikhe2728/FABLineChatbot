@@ -52,7 +52,7 @@ class LiveChatService {
    */
   async startLiveChat(userId, displayName, initialMessage) {
     try {
-      const endpoint = `${this.baseUrl}api/teams-itsupport-direct/live-chat/start`;
+      const endpoint = `${this.baseUrl}api/teams-itsupport-direct/live-chat/message/${this.tenantId}`;
       logger.info(`Starting live chat for user ${userId} at ${endpoint}`);
 
       const payload = {
