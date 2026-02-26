@@ -96,7 +96,10 @@ class DialogManager {
             attributes: { issueType }
           };
         }
-        // agent_connectivity - ask for mobile number first
+        // agent_connectivity - skip mobile input if already collected
+        if (attributes?.mobileNumber) {
+          return this._handleCollectMobile(userId, attributes.mobileNumber, null, { ...attributes, issueType }, displayName);
+        }
         return {
           cards: [
             this.templateService.getTextCard('Agent Connectivity Issue', ''),
@@ -114,7 +117,10 @@ class DialogManager {
         };
 
       case 'live_chat':
-        // Ask for mobile number before connecting to agent
+        // Skip mobile input if already collected
+        if (attributes?.mobileNumber) {
+          return this._handleCollectMobileLiveChat(userId, attributes.mobileNumber, null, attributes, displayName);
+        }
         return {
           cards: [
             this.templateService.getTextCard('Live Chat', ''),
@@ -156,7 +162,10 @@ class DialogManager {
         };
       }
 
-      // For agent_connectivity, ask for mobile number
+      // For agent_connectivity - skip mobile input if already collected
+      if (attributes?.mobileNumber) {
+        return this._handleCollectMobile(userId, attributes.mobileNumber, null, { ...attributes, issueType }, displayName);
+      }
       return {
         cards: [this.templateService.getMobileInputCard('ticket')],
         newDialogState: 'COLLECT_MOBILE',
@@ -201,7 +210,10 @@ class DialogManager {
     }
 
     if (action === 'troubleshoot_failed') {
-      // Troubleshooting didn't help - ask for mobile number before ticket submission
+      // Troubleshooting didn't help - skip mobile input if already collected
+      if (attributes?.mobileNumber) {
+        return this._handleCollectMobile(userId, attributes.mobileNumber, null, { ...attributes, issueType }, displayName);
+      }
       return {
         cards: [
           this.templateService.getTextCard("Troubleshooting Didn't Help", ''),
@@ -515,6 +527,10 @@ class DialogManager {
     }
 
     if (action === 'status_by_mobile') {
+      // Skip mobile input if already collected
+      if (attributes?.mobileNumber) {
+        return this._handleCollectMobileStatus(userId, attributes.mobileNumber, null, attributes, displayName);
+      }
       return {
         cards: [this.templateService.getMobileInputCard('status')],
         newDialogState: 'COLLECT_MOBILE_STATUS'
