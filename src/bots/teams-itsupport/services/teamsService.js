@@ -274,7 +274,7 @@ class TeamsService {
       }
 
       logger.info(
-        `📤 Sending proactive message from agent: ${text.substring(0, 50)}`
+        `📤 Sending proactive message from agent: ${(text || "").substring(0, 50)}`
       );
       logger.debug(
         `Attachments: ${attachments.length}, Using conversation reference:`,
@@ -310,12 +310,16 @@ class TeamsService {
       const axios = require("axios");
       const payload = {
         type: "message",
-        text: text,
         from: {
           id: this.appId,
           name: "IT Support Agent",
         },
       };
+
+      // Only include text if it has meaningful content (not empty/whitespace)
+      if (text && text.trim().length > 0) {
+        payload.text = text;
+      }
 
       // ✅ NEW: Add attachments if present
       if (attachments && attachments.length > 0) {
@@ -324,20 +328,59 @@ class TeamsService {
         );
 
         // Build Teams-compatible attachment format
+        // Teams API only supports specific attachment types:
+        // - image/* (direct), Audio Card, Video Card, Hero Card, Adaptive Card
+        // Raw media types like audio/mpeg, video/mp4, application/pdf etc. are NOT supported
+        // and will return "Unknown attachment type" error
         payload.attachments = attachments.map((att) => {
-          // If attachment already has Teams format, use as-is
-          if (att.contentType && att.contentUrl) {
+          const contentType = att.contentType || "application/octet-stream";
+          const url = att.contentUrl || att.url;
+          const name = att.name || att.fileName || "attachment";
+
+          // Images can be sent as direct attachments
+          if (contentType.startsWith("image/")) {
             return {
-              contentType: att.contentType,
-              contentUrl: att.contentUrl,
-              name: att.name || att.fileName || "attachment",
+              contentType: contentType,
+              contentUrl: url,
+              name: name,
             };
           }
-          // Otherwise convert from Avaya format
+
+          // Audio files → Teams Audio Card
+          if (contentType.startsWith("audio/")) {
+            return {
+              contentType: "application/vnd.microsoft.card.audio",
+              content: {
+                title: name,
+                media: [{ url: url }],
+              },
+            };
+          }
+
+          // Video files → Teams Video Card
+          if (contentType.startsWith("video/")) {
+            return {
+              contentType: "application/vnd.microsoft.card.video",
+              content: {
+                title: name,
+                media: [{ url: url }],
+              },
+            };
+          }
+
+          // All other files (PDF, documents, etc.) → Hero Card with download link
           return {
-            contentType: att.contentType || "application/octet-stream",
-            contentUrl: att.url || att.contentUrl,
-            name: att.fileName || att.name || "attachment",
+            contentType: "application/vnd.microsoft.card.hero",
+            content: {
+              title: name,
+              buttons: [
+                {
+                  type: "openUrl",
+                  title: "Download",
+                  value: url,
+                },
+              ],
+            },
           };
         });
 
