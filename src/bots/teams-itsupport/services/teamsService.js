@@ -328,10 +328,10 @@ class TeamsService {
         );
 
         // Build Teams-compatible attachment format
-        // Teams API only supports specific attachment types:
-        // - image/* (direct), Audio Card, Video Card, Hero Card, Adaptive Card
-        // Raw media types like audio/mpeg, video/mp4, application/pdf etc. are NOT supported
-        // and will return "Unknown attachment type" error
+        // Teams supports: Adaptive Card, Hero Card, Thumbnail Card, image/*
+        // Audio/Video Card types are NOT supported in Teams
+        // For audio/video: Use Adaptive Card with Media element for inline playback
+        // See: https://learn.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/media-elements-in-adaptive-cards
         payload.attachments = attachments.map((att) => {
           const contentType = att.contentType || "application/octet-stream";
           const url = att.contentUrl || att.url;
@@ -346,24 +346,45 @@ class TeamsService {
             };
           }
 
-          // Audio files → Teams Audio Card
-          if (contentType.startsWith("audio/")) {
+          // Audio/Video → Adaptive Card with Media element for inline playback
+          if (
+            contentType.startsWith("audio/") ||
+            contentType.startsWith("video/")
+          ) {
+            const fileType = contentType.startsWith("audio/")
+              ? "Audio"
+              : "Video";
             return {
-              contentType: "application/vnd.microsoft.card.audio",
+              contentType: "application/vnd.microsoft.card.adaptive",
               content: {
-                title: name,
-                media: [{ url: url }],
-              },
-            };
-          }
-
-          // Video files → Teams Video Card
-          if (contentType.startsWith("video/")) {
-            return {
-              contentType: "application/vnd.microsoft.card.video",
-              content: {
-                title: name,
-                media: [{ url: url }],
+                $schema:
+                  "http://adaptivecards.io/schemas/adaptive-card.json",
+                type: "AdaptiveCard",
+                version: "1.6",
+                body: [
+                  {
+                    type: "TextBlock",
+                    text: `${fileType}: ${name}`,
+                    weight: "Bolder",
+                    size: "Medium",
+                  },
+                  {
+                    type: "Media",
+                    sources: [
+                      {
+                        mimeType: contentType,
+                        url: url,
+                      },
+                    ],
+                  },
+                ],
+                actions: [
+                  {
+                    type: "Action.OpenUrl",
+                    title: `Download ${fileType}`,
+                    url: url,
+                  },
+                ],
               },
             };
           }
