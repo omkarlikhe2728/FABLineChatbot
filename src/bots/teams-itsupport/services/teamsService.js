@@ -1,14 +1,17 @@
-const { BotFrameworkAdapter, ConfigurationBotFrameworkAuthentication } = require('botbuilder');
-const logger = require('../../../common/utils/logger');
-const TokenService = require('./tokenService');
-const DebugService = require('./debugService');
+const {
+  BotFrameworkAdapter,
+  ConfigurationBotFrameworkAuthentication,
+} = require("botbuilder");
+const logger = require("../../../common/utils/logger");
+const TokenService = require("./tokenService");
+const DebugService = require("./debugService");
 
 class TeamsService {
   constructor(config) {
     this.appId = config.appId;
     this.appPassword = config.appPassword;
     this.microsoftAppTenantId = config.microsoftAppTenantId;
-    this.botId = 'teams-itsupport';
+    this.botId = "teams-itsupport";
     this.config = config;
 
     // Initialize manual token service for debugging/fallback
@@ -17,51 +20,79 @@ class TeamsService {
 
     // Initialize Bot Framework Adapter
     logger.debug(`Starting BotFrameworkAdapter initialization`);
-    logger.debug(`Configuration: appId=${this.appId?.substring(0, 12)}..., tenantId=${this.microsoftAppTenantId?.substring(0, 12)}...`);
+    logger.debug(
+      `Configuration: appId=${this.appId?.substring(
+        0,
+        12
+      )}..., tenantId=${this.microsoftAppTenantId?.substring(0, 12)}...`
+    );
 
     // Use direct credentials approach - more reliable for token generation
     try {
-      logger.debug(`Initializing BotFrameworkAdapter with direct credentials...`);
+      logger.debug(
+        `Initializing BotFrameworkAdapter with direct credentials...`
+      );
 
       this.adapter = new BotFrameworkAdapter({
         appId: this.appId,
-        appPassword: this.appPassword
+        appPassword: this.appPassword,
       });
 
-      logger.debug(` BotFrameworkAdapter initialized with direct app credentials`);
-      logger.debug(` BotFrameworkAdapter ready (credentials: appId present, appPassword present)`);
-      this.authMethod = 'DirectCredentials';
-
+      logger.debug(
+        ` BotFrameworkAdapter initialized with direct app credentials`
+      );
+      logger.debug(
+        ` BotFrameworkAdapter ready (credentials: appId present, appPassword present)`
+      );
+      this.authMethod = "DirectCredentials";
     } catch (error) {
-      logger.error(' Error initializing BotFrameworkAdapter:', error.message);
-      throw new Error(`Cannot initialize BotFrameworkAdapter: ${error.message}`);
+      logger.error(" Error initializing BotFrameworkAdapter:", error.message);
+      throw new Error(
+        `Cannot initialize BotFrameworkAdapter: ${error.message}`
+      );
     }
 
     // Add error handling for adapter
     this.adapter.onTurnError = async (context, error) => {
-      logger.error('🚨 BotFrameworkAdapter onTurnError:', {
+      logger.error("🚨 BotFrameworkAdapter onTurnError:", {
         message: error.message,
         code: error.code,
-        statusCode: error.statusCode
+        statusCode: error.statusCode,
       });
       try {
-        await context.sendTraceActivity('TurnError', `${error.message}`);
+        await context.sendTraceActivity("TurnError", `${error.message}`);
       } catch (traceError) {
-        logger.error('Could not send trace activity:', traceError.message);
+        logger.error("Could not send trace activity:", traceError.message);
       }
     };
 
-    logger.debug(` BotFrameworkAdapter fully initialized with ${this.authMethod}`);
+    logger.debug(
+      ` BotFrameworkAdapter fully initialized with ${this.authMethod}`
+    );
 
     // Diagnostic logging - credentials validation
     logger.debug(`TEAMS BOT CREDENTIALS`);
     logger.debug(`Bot ID: ${this.botId}`);
     logger.debug(`App ID (full): ${this.appId}`);
-    logger.debug(`App ID (masked): ${this.appId?.substring(0, 10)}...${this.appId?.substring(this.appId.length - 6)}`);
-    logger.debug(`App Password Present: ${!!this.appPassword ? 'YES' : 'NO'}`);
-    logger.debug(`App Password Length: ${this.appPassword?.length || 0} characters`);
+    logger.debug(
+      `App ID (masked): ${this.appId?.substring(
+        0,
+        10
+      )}...${this.appId?.substring(this.appId.length - 6)}`
+    );
+    logger.debug(`App Password Present: ${!!this.appPassword ? "YES" : "NO"}`);
+    logger.debug(
+      `App Password Length: ${this.appPassword?.length || 0} characters`
+    );
     logger.debug(`Tenant ID (full): ${this.microsoftAppTenantId}`);
-    logger.debug(`Tenant ID (masked): ${this.microsoftAppTenantId?.substring(0, 10)}...${this.microsoftAppTenantId?.substring(this.microsoftAppTenantId.length - 6)}`);
+    logger.debug(
+      `Tenant ID (masked): ${this.microsoftAppTenantId?.substring(
+        0,
+        10
+      )}...${this.microsoftAppTenantId?.substring(
+        this.microsoftAppTenantId.length - 6
+      )}`
+    );
     logger.debug(`Auth Method: ${this.authMethod}`);
     logger.debug(`Adapter Type: ${this.adapter?.constructor?.name}`);
 
@@ -88,7 +119,7 @@ class TeamsService {
       bot: activity.recipient,
       conversation: activity.conversation,
       channelId: activity.channelId,
-      serviceUrl: activity.serviceUrl
+      serviceUrl: activity.serviceUrl,
     };
   }
 
@@ -104,7 +135,7 @@ class TeamsService {
 
       if (!context) {
         logger.warn(`No context provided for card sending`);
-        return { success: false, error: 'No context' };
+        return { success: false, error: "No context" };
       }
 
       logger.info(`\n📤 ========== OUTBOUND MESSAGE DIAGNOSTIC ==========`);
@@ -112,9 +143,21 @@ class TeamsService {
       logger.info(`Activity from: ${activity?.from?.id}`);
       logger.info(`Conversation: ${activity?.conversation?.id}`);
       logger.info(`Context Activity ID: ${context?.activity?.id}`);
-      logger.info(`Service URL (from context): ${context?.activity?.serviceUrl}`);
-      logger.info(`Service URL Valid Format: ${this.debugService?.validateServiceUrl(context?.activity?.serviceUrl) ? 'YES ' : 'NO '}`);
-      logger.info(`Service URL Region: ${this.debugService?.getServiceUrlFormat(context?.activity?.serviceUrl)}`);
+      logger.info(
+        `Service URL (from context): ${context?.activity?.serviceUrl}`
+      );
+      logger.info(
+        `Service URL Valid Format: ${
+          this.debugService?.validateServiceUrl(context?.activity?.serviceUrl)
+            ? "YES "
+            : "NO "
+        }`
+      );
+      logger.info(
+        `Service URL Region: ${this.debugService?.getServiceUrlFormat(
+          context?.activity?.serviceUrl
+        )}`
+      );
       logger.info(`Adapter Type: ${this.adapter?.constructor?.name}`);
       logger.info(`Auth Method: ${this.authMethod}`);
       logger.info(`================================================\n`);
@@ -145,28 +188,34 @@ class TeamsService {
         logger.debug(`API endpoint: ${endpoint}`);
 
         // Step 3: Prepare the message payload
-        const axios = require('axios');
+        const axios = require("axios");
         const payload = {
-          type: 'message',
-          attachments: [{
-            contentType: 'application/vnd.microsoft.card.adaptive',
-            content: cardJson
-          }]
+          type: "message",
+          attachments: [
+            {
+              contentType: "application/vnd.microsoft.card.adaptive",
+              content: cardJson,
+            },
+          ],
         };
 
         // Step 4: Make the API call using axios
         const response = await axios.post(endpoint, payload, {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-          timeout: 10000
+          timeout: 10000,
         });
 
-        logger.debug(` Adaptive Card sent successfully via direct API call. Response ID: ${response.data?.id}`);
+        logger.debug(
+          ` Adaptive Card sent successfully via direct API call. Response ID: ${response.data?.id}`
+        );
         return { success: true };
       } catch (manualError) {
-        logger.warn(`Manual API call failed, will throw error: ${manualError.message}`);
+        logger.warn(
+          `Manual API call failed, will throw error: ${manualError.message}`
+        );
         throw manualError;
       }
     } catch (error) {
@@ -176,21 +225,32 @@ class TeamsService {
         statusCode: error.statusCode,
         activity: activity?.from?.id,
         serviceUrl: context?.activity?.serviceUrl,
-        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
       });
 
       // Log more details for Teams authorization errors
-      if (error.message?.includes('Authorization') || error.statusCode === 401) {
+      if (
+        error.message?.includes("Authorization") ||
+        error.statusCode === 401
+      ) {
         logger.error(`\n ========== AUTHORIZATION ERROR (401) ==========`);
-        logger.error(`This means the bot cannot generate an OAuth token to send messages.`);
+        logger.error(
+          `This means the bot cannot generate an OAuth token to send messages.`
+        );
         logger.error(`\nVERIFICATION CHECKLIST:`);
-        logger.error(`1. Is App ID correct in Azure Portal > App registrations?`);
+        logger.error(
+          `1. Is App ID correct in Azure Portal > App registrations?`
+        );
         logger.error(`2. Is App Password/Secret valid and NOT expired?`);
         logger.error(`3. Is Tenant ID correct in Azure Portal > Azure AD?`);
-        logger.error(`4. Do .env values exactly match Azure (no extra spaces)?`);
+        logger.error(
+          `4. Do .env values exactly match Azure (no extra spaces)?`
+        );
         logger.error(`\nCurrent Configuration:`);
         logger.error(`📌 App ID: ${this.appId}`);
-        logger.error(`📌 App Password Length: ${this.appPassword?.length} chars`);
+        logger.error(
+          `📌 App Password Length: ${this.appPassword?.length} chars`
+        );
         logger.error(`📌 Tenant ID: ${this.microsoftAppTenantId}`);
         logger.error(`===================================================\n`);
       }
@@ -207,15 +267,22 @@ class TeamsService {
   async sendProactiveMessage(conversationReference, text, attachments = []) {
     try {
       if (!conversationReference) {
-        logger.error('No conversation reference provided for proactive message');
-        return { success: false, error: 'No conversation reference' };
+        logger.error(
+          "No conversation reference provided for proactive message"
+        );
+        return { success: false, error: "No conversation reference" };
       }
 
-      logger.info(`📤 Sending proactive message from agent: ${text.substring(0, 50)}`);
-      logger.debug(`Attachments: ${attachments.length}, Using conversation reference:`, {
-        serviceUrl: conversationReference.serviceUrl,
-        conversationId: conversationReference.conversation?.id
-      });
+      logger.info(
+        `📤 Sending proactive message from agent: ${text.substring(0, 50)}`
+      );
+      logger.debug(
+        `Attachments: ${attachments.length}, Using conversation reference:`,
+        {
+          serviceUrl: conversationReference.serviceUrl,
+          conversationId: conversationReference.conversation?.id,
+        }
+      );
 
       // Get OAuth token for Teams API call
       const token = await this.tokenService.getToken();
@@ -226,52 +293,57 @@ class TeamsService {
       const conversationId = conversationReference.conversation?.id;
 
       if (!serviceUrl || !conversationId) {
-        logger.error('Missing serviceUrl or conversationId in conversation reference', {
-          serviceUrl: !!serviceUrl,
-          conversationId: !!conversationId
-        });
-        return { success: false, error: 'Invalid conversation reference' };
+        logger.error(
+          "Missing serviceUrl or conversationId in conversation reference",
+          {
+            serviceUrl: !!serviceUrl,
+            conversationId: !!conversationId,
+          }
+        );
+        return { success: false, error: "Invalid conversation reference" };
       }
 
       const endpoint = `${serviceUrl}v3/conversations/${conversationId}/activities`;
       logger.debug(`Teams API endpoint: ${endpoint}`);
 
       // ✅ NEW: Build Teams-compatible message with attachments
-      const axios = require('axios');
+      const axios = require("axios");
       const payload = {
-        type: 'message',
+        type: "message",
         text: text,
         from: {
           id: this.appId,
-          name: 'IT Support Agent'
-        }
+          name: "IT Support Agent",
+        },
       };
 
       // ✅ NEW: Add attachments if present
       if (attachments && attachments.length > 0) {
-        logger.info(`📎 Adding ${attachments.length} attachment(s) to agent response`);
+        logger.info(
+          `📎 Adding ${attachments.length} attachment(s) to agent response`
+        );
 
         // Build Teams-compatible attachment format
-        payload.attachments = attachments.map(att => {
+        payload.attachments = attachments.map((att) => {
           // If attachment already has Teams format, use as-is
           if (att.contentType && att.contentUrl) {
             return {
               contentType: att.contentType,
               contentUrl: att.contentUrl,
-              name: att.name || att.fileName || 'attachment'
+              name: att.name || att.fileName || "attachment",
             };
           }
           // Otherwise convert from Avaya format
           return {
-            contentType: att.contentType || 'application/octet-stream',
+            contentType: att.contentType || "application/octet-stream",
             contentUrl: att.url || att.contentUrl,
-            name: att.fileName || att.name || 'attachment'
+            name: att.fileName || att.name || "attachment",
           };
         });
 
         logger.debug(`Attachments formatted for Teams:`, {
           count: payload.attachments.length,
-          types: payload.attachments.map(a => a.contentType)
+          types: payload.attachments.map((a) => a.contentType),
         });
       }
 
@@ -280,21 +352,25 @@ class TeamsService {
       // Make the API call
       const response = await axios.post(endpoint, payload, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        timeout: 10000
+        timeout: 10000,
       });
 
-      logger.info(`✅ Proactive message sent successfully. Response ID: ${response.data?.id}`);
+      logger.info(
+        `✅ Proactive message sent successfully. Response ID: ${response.data?.id}`
+      );
       return { success: true, data: { id: response.data?.id } };
     } catch (error) {
-      logger.error('Error sending proactive message', {
-        message: error.message,
-        code: error.code,
-        statusCode: error.response?.status,
-        responseData: error.response?.data
-      });
+      // logger.error('Error sending proactive message', {
+      //   message: error.message,
+      //   code: error.code,
+      //   statusCode: error.response?.status,
+      //   responseData: error.response?.data
+      // });
+      console.log("error_sending_msg=", error);
+      console.log("error_obj=", JSON.stringify(error.response.data));
       return { success: false, error: error.message };
     }
   }
@@ -306,18 +382,27 @@ class TeamsService {
   async handleAgentResponse(userId, text, attachments = []) {
     try {
       logger.info(`📥 Processing agent response for Teams user ${userId}`);
-      logger.debug(`Text: "${text.substring(0, 50)}...", Attachments: ${attachments.length}`);
+      logger.debug(
+        `Text: "${text.substring(0, 50)}...", Attachments: ${
+          attachments.length
+        }`
+      );
 
       // Get conversation reference for this user
-      const conversationRef = this.sessionService?.getConversationReference(userId);
+      const conversationRef =
+        this.sessionService?.getConversationReference(userId);
 
       if (!conversationRef) {
         logger.error(`No conversation reference for user ${userId}`);
-        return { success: false, error: 'User session not found' };
+        return { success: false, error: "User session not found" };
       }
 
       // Send via proactive messaging
-      const result = await this.sendProactiveMessage(conversationRef, text, attachments);
+      const result = await this.sendProactiveMessage(
+        conversationRef,
+        text,
+        attachments
+      );
 
       if (result.success) {
         logger.info(`✅ Agent response sent to Teams user ${userId}`);
@@ -344,8 +429,8 @@ class TeamsService {
         success: true,
         data: {
           id: userId,
-          displayName: `Teams User ${userId}`
-        }
+          displayName: `Teams User ${userId}`,
+        },
       };
     } catch (error) {
       logger.error(`Error getting profile for ${userId}`, error);
@@ -361,7 +446,7 @@ class TeamsService {
       // Basic validation - in production, verify JWT
       return token && token.length > 0;
     } catch (error) {
-      logger.error('Error validating token', error);
+      logger.error("Error validating token", error);
       return false;
     }
   }
@@ -372,15 +457,21 @@ class TeamsService {
    */
   async testTokenGeneration() {
     logger.info(`\n🧪 ========== TESTING OAUTH TOKEN GENERATION ==========`);
-    logger.info(`Testing direct OAuth token generation with current credentials...`);
+    logger.info(
+      `Testing direct OAuth token generation with current credentials...`
+    );
 
     const result = await this.tokenService.getTokenWithDetails();
 
     if (result.success) {
       logger.debug(` Token generation SUCCESSFUL`);
       logger.info(`This means your credentials are valid and working.`);
-      logger.info(`If you're still getting HTTP 401 errors, the issue is likely:`);
-      logger.info(`  1. Service URL format (should be cleaned by activityController)`);
+      logger.info(
+        `If you're still getting HTTP 401 errors, the issue is likely:`
+      );
+      logger.info(
+        `  1. Service URL format (should be cleaned by activityController)`
+      );
       logger.info(`  2. Adapter configuration issue`);
     } else {
       logger.error(` Token generation FAILED`);
@@ -408,18 +499,22 @@ class TeamsService {
     const result = await this.debugService.testManualMessageSend(
       serviceUrl,
       conversationId,
-      'test-user'
+      "test-user"
     );
 
     if (result.success) {
       logger.debug(` Direct message send SUCCESSFUL`);
       logger.info(`This proves your credentials and service URL are valid.`);
-      logger.info(`If BotFrameworkAdapter still fails, the issue is in adapter config.`);
+      logger.info(
+        `If BotFrameworkAdapter still fails, the issue is in adapter config.`
+      );
     } else {
       logger.error(` Direct message send FAILED`);
       logger.error(`Issue: HTTP ${result.status} - ${result.error}`);
       if (result.status === 401) {
-        logger.error(`Even though token generation works, Teams API rejected the request.`);
+        logger.error(
+          `Even though token generation works, Teams API rejected the request.`
+        );
         logger.error(`Check: Service URL format and Conversation ID`);
       }
     }
